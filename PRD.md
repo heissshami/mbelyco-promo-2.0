@@ -85,6 +85,8 @@ The permissions are enforced through the **withAuth middleware** function which 
 - `users.roles.assign` - Assign roles to users
 - `users.roles.revoke` - Remove roles from users
 - `users.permissions.manage` - Manage user-specific permissions
+- `users.registration.manage` - Manage registration settings
+- `users.registration.approve` - Approve pending registrations
 
 **2. Batch Management Permissions**
 - `batches.read` - View batch information and statistics
@@ -100,6 +102,7 @@ The permissions are enforced through the **withAuth middleware** function which 
 - `promo-codes.generate` - Generate new promo codes
 - `promo-codes.import` - Import codes from CSV files
 - `promo-codes.download` - Download codes in PDF/CSV format
+- `promo-codes.export` - Export codes in PDF/CSV format
 - `promo-codes.status.change` - Change individual code status
 - `promo-codes.bulk.operations` - Perform bulk operations on codes
 - `promo-codes.validate` - Validate code format and uniqueness
@@ -126,11 +129,17 @@ The permissions are enforced through the **withAuth middleware** function which 
 **6. System Configuration Permissions**
 - `system.settings.read` - View system configuration
 - `system.settings.update` - Modify system settings
+- `system.settings.export` - Export configuration settings
+- `system.settings.import` - Import configuration settings
+- `system.settings.backup` - Backup configuration settings
+- `system.settings.restore` - Restore configuration settings
 - `system.integrations.manage` - Manage API integrations
 - `system.rate-limits.configure` - Configure rate limiting rules
 - `system.notifications.setup` - Setup alert notifications
 - `system.backup.manage` - Manage system backups
 - `system.monitoring` - Monitor system performance and concurrency control
+- `system.branding.customize` - Customize system appearance
+- `system.workflows.manage` - Manage custom workflows
 
 **7. Reporting & Analytics Permissions**
 - `reports.read` - Access standard reports
@@ -566,7 +575,7 @@ Comprehensive download system for promotional codes in multiple formats with pro
 - **UTF-8 Encoding**: Proper character encoding for international support
 
 **Backend Implementation**:
-- **API Endpoint**: `/api/v1/admin/promo-codes/export`
+- **API Endpoint**: `/api/v1/admin/promo-codes/download`
 - **Query Parameters**: `format` (pdf/csv) and `batchId`
 - **Database Integration**: Drizzle ORM queries for efficient data retrieval
 - **File Generation**: Server-side PDF/CSV creation with appropriate headers
@@ -575,7 +584,7 @@ Comprehensive download system for promotional codes in multiple formats with pro
 - **Error Handling**: Comprehensive error handling and user feedback
 
 **System Permissions Required**:
-- `promo-codes.export` - Download codes in PDF/CSV format
+- `promo-codes.download` - Download codes in PDF/CSV format
 - `batches.read` - View batch information for download
 - `audit.logs.read` - View download audit logs
 
@@ -637,7 +646,7 @@ Comprehensive real-time transaction monitoring system for redemption and disburs
 - **Search Functionality**: Text search across transaction details
 - **Sorting Options**: Multiple column sorting with custom criteria
 - **Pagination**: Efficient handling of large transaction datasets
-- **Export Options**: PDF, CSV export with custom date ranges
+- **Download Options**: PDF, CSV download with custom date ranges
 
 **Transaction Details View**:
 - **Basic Information**: Transaction ID, timestamp, user details, amount
