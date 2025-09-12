@@ -104,6 +104,7 @@ The permissions are enforced through the **withAuth middleware** function which 
 - `promo-codes.bulk.operations` - Perform bulk operations on codes
 - `promo-codes.validate` - Validate code format and uniqueness
 - `promo-codes.search` - Search if codes exist only
+- `promo-codes.fraud.reporting` - Report code as Fraud
 
 **4. Redemption Management Permissions**
 - `redemptions.read` - View redemption transactions
@@ -170,29 +171,19 @@ The permissions are enforced through the **withAuth middleware** function which 
 - Access to all financial and security operations
 - System configuration and integration management.
 
-**2. Batch Manager**
-- `promo-codes.search`, `redemptions.read`, `reports.read`, `alerts.read`, `fraud.alerts.view`
-- Can create and manage batches
-- Access to redemption monitoring and basic reporting
-- Can view alerts related to campaign performance and fraud
-
-**3. Financial Administrator**
+**2. Financial Administrator**
 - `disbursements.*`, `redemptions.read`, `reports.read`, `audit.logs.read`, `alerts.read`, `financial.alerts.view`, `alerts.acknowledge`
 - Manages payment processing and financial reconciliation
 - Access to financial reports and audit trails
 - Can view and acknowledge financial threshold alerts
 
-**4. Support Agent**
-- `users.read`, `redemptions.read`, `promo-codes.read`, `alerts.read`, `system.alerts.view`
+**3. Batch Manager**
+- `promo-codes.search`, `promo-codes.fraud.reporting`, `users.read`, `redemptions.read`, `promo-codes.read`, `alerts.read`, `system.alerts.view`
+- Can verify if code is valid
+- Can mark searched valid code as `reported` (Fraud Reporting) 
 - Limited access for customer support operations
 - Can view user information and redemption history
 - Can view system health alerts for troubleshooting
-
-**5. Viewer**
-- `batches.read`, `promo-codes.read`, `redemptions.read`, `reports.read`, `alerts.read`
-- Read-only access to system information
-- Suitable for stakeholders and monitoring purposes
-- Can view alerts but cannot acknowledge or manage them
 
 **API Endpoint Protection**
 - All admin endpoints protected with permission middleware
@@ -207,7 +198,7 @@ Comprehensive authentication system with dual user registration methods - automa
 
 **Scope**:
 - **Dual Registration System**:
-  - Automatic USSD user registration (always enabled)
+  - Automatic USSD user registration (toggleable via system settings)
   - Configurable admin panel registration (toggleable via system settings)
 - Better Auth integration with JWT tokens and httpOnly cookies
 - Role-based access control (RBAC) with granular permissions
@@ -225,7 +216,7 @@ Comprehensive authentication system with dual user registration methods - automa
 - Automated role assignment based on user behavior
 
 **Acceptance Criteria**:
-- [ ] System supports multiple user roles (Super Admin, Campaign Manager, Financial Admin, Support Agent, Viewer)
+- [ ] System supports multiple user roles (Super Admin, Financial Admin, Batch Manager)
 - [ ] Each role has specific granular permissions defined
 - [ ] All API endpoints are protected with permission middleware
 - [ ] Users can only access functions they have permissions for
