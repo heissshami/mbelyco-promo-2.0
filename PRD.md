@@ -99,10 +99,11 @@ The permissions are enforced through the **withAuth middleware** function which 
 - `promo-codes.read` - View promo code information
 - `promo-codes.generate` - Generate new promo codes
 - `promo-codes.import` - Import codes from CSV files
-- `promo-codes.export` - Export codes in PDF/CSV format
+- `promo-codes.download` - Download codes in PDF/CSV format
 - `promo-codes.status.change` - Change individual code status
 - `promo-codes.bulk.operations` - Perform bulk operations on codes
 - `promo-codes.validate` - Validate code format and uniqueness
+- `promo-codes.search` - Search if codes exist only
 
 **4. Redemption Management Permissions**
 - `redemptions.read` - View redemption transactions
@@ -169,9 +170,9 @@ The permissions are enforced through the **withAuth middleware** function which 
 - Access to all financial and security operations
 - System configuration and integration management.
 
-**2. Campaign Manager**
-- `batches.*`, `promo-codes.*`, `redemptions.read`, `reports.read`, `alerts.read`, `fraud.alerts.view`
-- Can create and manage promotional campaigns
+**2. Batch Manager**
+- `promo-codes.search`, `redemptions.read`, `reports.read`, `alerts.read`, `fraud.alerts.view`
+- Can create and manage batches
 - Access to redemption monitoring and basic reporting
 - Can view alerts related to campaign performance and fraud
 
@@ -192,25 +193,6 @@ The permissions are enforced through the **withAuth middleware** function which 
 - Read-only access to system information
 - Suitable for stakeholders and monitoring purposes
 - Can view alerts but cannot acknowledge or manage them
-
-### Permission Enforcement
-
-**Middleware-Based Authorization**
-```typescript
-// Example permission middleware
-export const withPermissions = (requiredPermissions: string[]) => {
-  return async (req: NextRequest, context: any) => {
-    const user = await getAuthenticatedUser(req);
-    const hasPermission = await checkUserPermissions(user.id, requiredPermissions);
-    
-    if (!hasPermission) {
-      return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
-    }
-    
-    return NextResponse.next();
-  };
-};
-```
 
 **API Endpoint Protection**
 - All admin endpoints protected with permission middleware
