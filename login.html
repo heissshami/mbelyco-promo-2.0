@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - MBELYCO Promo Management</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <style>
+    :root {
+      /* Color System */
+      --color-primary: #15a000;
+      --color-primary-2: #0f7a00;
+      --color-bg: #033333;
+      --color-surface: #0a4d4d;
+      --color-elev: #0f5e5e;
+      --color-text: #ffffff;
+      --color-muted: #ffffff;
+      --color-border: rgba(255,255,255,.08);
+      
+      /* Typography */
+      --fs-xs: 0.75rem;
+      --fs-sm: 0.875rem;
+      --fs-base: 1rem;
+      --fs-lg: 1.125rem;
+      --fs-xl: 1.25rem;
+      --fs-2xl: 1.5rem;
+      --fs-3xl: 1.875rem;
+      --fs-4xl: 2.25rem;
+      
+      /* Spacing */
+      --space-xs: 0.25rem;
+      --space-sm: 0.5rem;
+      --space-md: 1rem;
+      --space-lg: 1.5rem;
+      --space-xl: 2rem;
+      --space-2xl: 3rem;
+      
+      /* Animation */
+      --dur-fast: 0.15s;
+      --dur-med: 0.3s;
+      --dur-slow: 0.5s;
+      --easing: cubic-bezier(0.4, 0, 0.2, 1);
+      
+      /* Shadows */
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+
+    .theme-light {
+      --color-bg: #f8fafc;
+      --color-surface: #ffffff;
+      --color-elev: #f1f5f9;
+      --color-text: #0f172a;
+      --color-muted: #64748b;
+      --color-border: rgba(15,23,42,.1);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: "Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--color-bg);
+      color: var(--color-text);
+      line-height: 1.6;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+
+    /* Main Container */
+    .auth-container {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-sm);
+      position: relative;
+    }
+
+    /* Login Card */
+    .login-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 16px;
+      padding: var(--space-lg);
+      width: 100%;
+      max-width: 380px;
+      box-shadow: var(--shadow-md);
+      position: relative;
+      overflow: hidden;
+    }
+
+
+    /* Header */
+    .login-header {
+      text-align: center;
+      margin-bottom: var(--space-md);
+    }
+
+    .login-logo {
+      width: 120px;
+      height: 120px;
+      border-radius: 16px;
+      background: transparent;
+      display: grid;
+      place-items: center;
+      margin: 0 auto var(--space-xs);
+      box-shadow: none;
+      position: relative;
+    }
+
+    .login-logo svg {
+      width: 60px;
+      height: 60px;
+      border-radius: 12px;
+    }
+
+    .login-title {
+      font-size: var(--fs-xl);
+      font-weight: 700;
+      color: var(--color-primary);
+      margin-bottom: var(--space-xs);
+    }
+
+    .login-subtitle {
+      color: var(--color-muted);
+      font-size: var(--fs-sm);
+      font-weight: 500;
+      opacity: 0.9;
+    }
+
+    /* Form */
+    .login-form {
+      margin-bottom: var(--space-md);
+    }
+
+    .form-group {
+      margin-bottom: var(--space-sm);
+    }
+
+    .form-label {
+      display: block;
+      font-weight: 600;
+      color: var(--color-text);
+      margin-bottom: var(--space-sm);
+      font-size: var(--fs-sm);
+    }
+
+    .input-wrapper {
+      position: relative;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 16px;
+      height: 16px;
+      color: var(--color-muted);
+      z-index: 1;
+      transition: color var(--dur-med) var(--easing);
+    }
+
+    .form-input {
+      width: 100%;
+      background: transparent;
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      padding: 10px 14px 10px 40px;
+      color: var(--color-text);
+      font-size: var(--fs-sm);
+      font-family: inherit;
+      transition: all var(--dur-med) var(--easing);
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 4px rgba(21, 160, 0, 0.1);
+      background: rgba(21, 160, 0, 0.05);
+    }
+
+    .form-input:focus + .input-icon {
+      color: var(--color-primary);
+    }
+
+    .form-input::placeholder {
+      color: var(--color-muted);
+      opacity: 0.7;
+    }
+
+    /* Override browser autofill styling */
+    .form-input:-webkit-autofill,
+    .form-input:-webkit-autofill:hover,
+    .form-input:-webkit-autofill:focus,
+    .form-input:-webkit-autofill:active {
+      -webkit-box-shadow: 0 0 0 30px transparent inset !important;
+      -webkit-text-fill-color: var(--color-text) !important;
+      background: transparent !important;
+      transition: background-color 5000s ease-in-out 0s;
+    }
+
+    /* Password Toggle */
+    .password-toggle {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--color-muted);
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 4px;
+      transition: all var(--dur-fast) var(--easing);
+      z-index: 2;
+    }
+
+    .password-toggle:hover {
+      color: var(--color-primary);
+      background: rgba(21, 160, 0, 0.1);
+    }
+
+    .password-toggle:focus {
+      outline: none;
+      color: var(--color-primary);
+      background: rgba(21, 160, 0, 0.15);
+    }
+
+    .toggle-icon {
+      width: 14px;
+      height: 14px;
+      transition: all var(--dur-fast) var(--easing);
+    }
+
+    .password-toggle.active .toggle-icon {
+      color: var(--color-primary);
+    }
+
+    /* Checkbox */
+    .checkbox-wrapper {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      margin-bottom: var(--space-sm);
+    }
+
+    .checkbox {
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--color-border);
+      border-radius: 6px;
+      background: var(--color-elev);
+      position: relative;
+      cursor: pointer;
+      transition: all var(--dur-fast) var(--easing);
+    }
+
+    .checkbox:checked {
+      border-color: var(--color-primary);
+      background: var(--color-primary);
+    }
+
+    .checkbox:checked::after {
+      content: '✓';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #fff;
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    .checkbox-label {
+      color: var(--color-text);
+      font-weight: 500;
+      cursor: pointer;
+      font-size: var(--fs-sm);
+    }
+
+    /* Login Button */
+    .login-button {
+      width: 100%;
+      background: var(--color-primary);
+      border: none;
+      border-radius: 8px;
+      padding: 10px 16px;
+      color: #fff;
+      font-weight: 600;
+      font-size: var(--fs-sm);
+      font-family: inherit;
+      cursor: pointer;
+      transition: all var(--dur-med) var(--easing);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-sm);
+    }
+
+    .login-button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.2), transparent);
+      transition: left var(--dur-slow) var(--easing);
+    }
+
+    .login-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 32px rgba(21, 160, 0, 0.4);
+    }
+
+    .login-button:hover::before {
+      left: 100%;
+    }
+
+    .login-button:active {
+      transform: translateY(0);
+    }
+
+    .login-button svg {
+      width: 14px;
+      height: 14px;
+      transition: transform var(--dur-fast) var(--easing);
+    }
+
+    .login-button:hover svg {
+      transform: translateX(2px);
+    }
+
+
+    /* Footer */
+    .login-footer {
+      text-align: center;
+      margin-top: var(--space-sm);
+      padding-top: var(--space-sm);
+      border-top: 1px solid var(--color-border);
+    }
+
+    .footer-text {
+      color: var(--color-muted);
+      font-size: var(--fs-sm);
+      opacity: 0.8;
+    }
+
+    /* Loading State */
+    .loading {
+      opacity: 0.7;
+      pointer-events: none;
+    }
+
+    .loading .login-button {
+      background: linear-gradient(135deg, var(--color-muted), var(--color-border));
+    }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+      .auth-container {
+        padding: var(--space-sm);
+        align-items: flex-start;
+        padding-top: var(--space-lg);
+      }
+      
+      .login-card {
+        padding: var(--space-lg);
+        border-radius: 16px;
+        max-width: 100%;
+      }
+      
+      .login-title {
+        font-size: var(--fs-xl);
+      }
+      
+      .login-subtitle {
+        font-size: var(--fs-sm);
+      }
+      
+      .login-logo {
+        width: 80px;
+        height: 80px;
+        margin-bottom: var(--space-xs);
+      }
+      
+      .login-logo svg {
+        width: 40px;
+        height: 40px;
+      }
+      
+      .form-group {
+        margin-bottom: var(--space-sm);
+      }
+      
+      .form-input {
+        padding: 10px 14px 10px 40px;
+        font-size: var(--fs-sm);
+      }
+      
+      .input-icon {
+        left: 10px;
+        width: 16px;
+        height: 16px;
+      }
+      
+      .password-toggle {
+        right: 10px;
+      }
+      
+      .toggle-icon {
+        width: 14px;
+        height: 14px;
+      }
+      
+      .login-button {
+        padding: 10px 16px;
+        font-size: var(--fs-sm);
+      }
+      
+      .login-button svg {
+        width: 14px;
+        height: 14px;
+      }
+    }
+
+    /* Light Mode Adjustments */
+    .theme-light .login-card {
+      background: #ffffff;
+      border: 1px solid rgba(15,23,42,.1);
+    }
+
+    .theme-light .form-input {
+      background: transparent;
+      border: 1px solid rgba(15,23,42,.1);
+      color: #0f172a;
+    }
+
+    .theme-light .form-input:focus {
+      border-color: var(--color-primary);
+      background: rgba(21,160,0,.02);
+    }
+
+    /* Override browser autofill styling for light mode */
+    .theme-light .form-input:-webkit-autofill,
+    .theme-light .form-input:-webkit-autofill:hover,
+    .theme-light .form-input:-webkit-autofill:focus,
+    .theme-light .form-input:-webkit-autofill:active {
+      -webkit-box-shadow: 0 0 0 30px transparent inset !important;
+      -webkit-text-fill-color: #0f172a !important;
+      background: transparent !important;
+      transition: background-color 5000s ease-in-out 0s;
+    }
+
+    .theme-light .checkbox {
+      background: #ffffff;
+      border: 2px solid rgba(15,23,42,.2);
+    }
+
+
+    .theme-light .password-toggle:hover {
+      background: rgba(21, 160, 0, 0.08);
+    }
+
+    .theme-light .password-toggle:focus {
+      background: rgba(21, 160, 0, 0.12);
+    }
+  </style>
+</head>
+<body>
+  <!-- Main Container -->
+  <div class="auth-container">
+    <div class="login-card">
+      <!-- Header -->
+      <div class="login-header">
+        <div class="login-logo">
+          <svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="60" height="60">
+            <defs>
+              <style>.cls-1{fill:#1da049;}.cls-2{fill:#033333;}.cls-3{fill:none;stroke:#cd2027;}.cls-3,.cls-4{stroke-miterlimit:10;stroke-width:0.34px;}.cls-4{fill:#fff;stroke:#fff;}</style>
+            </defs>
+            <rect class="cls-1" width="512" height="512" rx="122.27"/>
+            <path class="cls-2" d="M252.35,143.2V263.78h116.7V143.2Zm106,99.68c0,3.73-.85,6.52-2.52,8.38A8.57,8.57,0,0,1,349.6,254a5.06,5.06,0,0,1-.55,0,8.49,8.49,0,0,1-6.54-2.8c-1.7-1.86-2.56-4.65-2.56-8.38V188.69a1.65,1.65,0,0,0-3.24-.42L330.15,214l-6,23.68q-1.55,6-2.52,8.89a12.37,12.37,0,0,1-3.61,5.15,10.61,10.61,0,0,1-7.28,2.33,11.09,11.09,0,0,1-5.93-1.5,10.88,10.88,0,0,1-3.78-3.82,22.26,22.26,0,0,1-2.12-5.16q-.78-2.84-1.58-5.89l-6-23.68-6.56-25.74a1.65,1.65,0,0,0-3.25.42v54.19q0,5.6-2.53,8.38a8.61,8.61,0,0,1-6.7,2.8,3,3,0,0,1-.42,0,8.45,8.45,0,0,1-6.19-2.75q-2.57-2.76-2.57-8.41V165.71q0-6.39,3.38-8.62a13.63,13.63,0,0,1,5.38-2,22.82,22.82,0,0,1,3.72-.27h6.2c3.73,0,6.43.33,8.12,1a7.4,7.4,0,0,1,1.42.76,7,7,0,0,1,2.32,2.83,55.34,55.34,0,0,1,2.76,8.45l12.77,47.51a1.65,1.65,0,0,0,3.18,0l12.76-47.51a57.69,57.69,0,0,1,2.76-8.45,7,7,0,0,1,2.34-2.83,7.32,7.32,0,0,1,1.41-.76c1.68-.66,4.4-1,8.12-1h6.2a22.91,22.91,0,0,1,3.72.27,13.63,13.63,0,0,1,5.38,2c2.24,1.49,3.37,4.36,3.37,8.62Z" transform="translate(0 0)"/>
+            <path class="cls-2" d="M405.45,304.62a31.07,31.07,0,0,0-30.57-25.28c-.51,0-1,0-1.55,0a1.72,1.72,0,0,0-.39,0h-3.89v-9.73H252.35v9.73h-3.89a2,2,0,0,0-2,1.94V291a2,2,0,0,0,2,1.94h3.89v7.78a3.9,3.9,0,0,0,3.9,3.89H365.16a3.89,3.89,0,0,0,3.89-3.89V293h5.83a17.65,17.65,0,0,1,11.52,4.32,17.5,17.5,0,0,1-2.48,28.17,17,17,0,0,1-3.72,1.7,17.67,17.67,0,0,1-5.32.82H334.24a4.17,4.17,0,0,0-1.19.17,4.11,4.11,0,0,0-2.9,3.93v32.65a4.09,4.09,0,0,0,4.09,4.09h5.43a4.1,4.1,0,0,0,4.1-4.09V341.57h31.11a31.12,31.12,0,0,0,30.57-36.95Zm-41.26-25.28h-107V273.5h107Z" transform="translate(0 0)"/>
+            <rect class="cls-3" x="257.22" y="273.5" width="106.97" height="5.83"/>
+            <rect class="cls-4" x="257.22" y="273.5" width="106.97" height="5.83"/>
+            <path class="cls-4" d="M358.35,165.71v77.17c0,3.73-.85,6.52-2.52,8.38A8.57,8.57,0,0,1,349.6,254a5.06,5.06,0,0,1-.55,0,8.49,8.49,0,0,1-6.54-2.8c-1.7-1.86-2.56-4.65-2.56-8.38V188.69a1.65,1.65,0,0,0-3.24-.42L330.15,214l-6,23.68q-1.55,6-2.52,8.89a12.37,12.37,0,0,1-3.61,5.15,10.61,10.61,0,0,1-7.28,2.33,11.09,11.09,0,0,1-5.93-1.5,10.88,10.88,0,0,1-3.78-3.82,22.26,22.26,0,0,1-2.12-5.16q-.78-2.84-1.58-5.89l-6-23.68-6.56-25.74a1.65,1.65,0,0,0-3.25.42v54.19q0,5.6-2.53,8.38a8.61,8.61,0,0,1-6.7,2.8,3,3,0,0,1-.42,0,8.45,8.45,0,0,1-6.19-2.75q-2.57-2.76-2.57-8.41V165.71q0-6.39,3.38-8.62a13.63,13.63,0,0,1,5.38-2,22.82,22.82,0,0,1,3.72-.27h6.2c3.73,0,6.43.33,8.12,1a7.4,7.4,0,0,1,1.42.76,7,7,0,0,1,2.32,2.83,55.34,55.34,0,0,1,2.76,8.45l12.77,47.51a1.65,1.65,0,0,0,3.18,0l12.76-47.51a57.69,57.69,0,0,1,2.76-8.45,7,7,0,0,1,2.34-2.83,7.32,7.32,0,0,1,1.41-.76c1.68-.66,4.4-1,8.12-1h6.2a22.91,22.91,0,0,1,3.72.27,13.63,13.63,0,0,1,5.38,2C357.22,158.58,358.35,161.45,358.35,165.71Z" transform="translate(0 0)"/>
+            <path class="cls-2" d="M149.37,279.34c-.06,1.45-.1,2.91-.1,4.37q0,4.68.44,9.24a95.17,95.17,0,0,0,1.82,11.67A96.58,96.58,0,0,0,159.9,328a97.73,97.73,0,0,0,28.92,34,95.82,95.82,0,0,0,10.59,6.8H134.68q-2.53-3.32-4.87-6.8a139.62,139.62,0,0,1-22.26-57.38c-.46-3-.81-6.06-1.06-9.13q-.49-5.82-.49-11.78t.49-11.77c.06-.78.13-1.55.21-2.33.32-3.27.76-6.52,1.31-9.72.34-2,.71-3.91,1.13-5.83a140.73,140.73,0,0,1,81.23-99.19A138.55,138.55,0,0,1,206.32,149a140.41,140.41,0,0,1,40.2-5.83v43.27a97.29,97.29,0,0,0-92.64,67.59c-.62,1.91-1.17,3.86-1.67,5.83a97.72,97.72,0,0,0-2.84,19.45Z" transform="translate(0 0)"/>
+            <path class="cls-4" d="M324.31,328V368.8H213.05A90.59,90.59,0,0,1,199.3,362a91.8,91.8,0,0,1-32.79-34Z" transform="translate(0 0)"/>
+          </svg>
+        </div>
+        <h1 class="login-title">Welcome to MBELYCO</h1>
+        <p class="login-subtitle">Sign in to access your promo code management dashboard</p>
+      </div>
+
+      <!-- Login Form -->
+      <form class="login-form" id="loginForm" novalidate>
+        <div class="form-group">
+          <label class="form-label" for="email">Email Address</label>
+          <div class="input-wrapper">
+            <i data-lucide="mail" class="input-icon"></i>
+            <input 
+              type="email" 
+              id="email" 
+              class="form-input" 
+              placeholder="Enter your email address" 
+              required 
+            />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="password">Password</label>
+          <div class="input-wrapper">
+            <i data-lucide="lock" class="input-icon"></i>
+            <input 
+              type="password" 
+              id="password" 
+              class="form-input" 
+              placeholder="Enter your password" 
+              required 
+            />
+            <button type="button" class="password-toggle" id="passwordToggle" aria-label="Toggle password visibility">
+              <i data-lucide="eye" class="toggle-icon"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="checkbox-wrapper">
+          <input type="checkbox" id="remember" class="checkbox" />
+          <label for="remember" class="checkbox-label">Remember me for 30 days</label>
+        </div>
+
+        <button type="submit" class="login-button" id="loginBtn">
+          <span>Sign In</span>
+          <i data-lucide="arrow-right"></i>
+        </button>
+      </form>
+
+
+      <!-- Footer -->
+      <div class="login-footer">
+        <p class="footer-text">© 2025 MBELYCO. All rights reserved.</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Initialize Lucide icons
+    lucide.createIcons();
+
+    // Demo users data
+    const demoUsers = [
+      {
+        email: 'elysembonye@gmail.com',
+        password: 'admin123',
+        name: 'Elyse Mbonyumukunzi',
+        role: 'admin',
+        permissions: ['create', 'read', 'update', 'delete', 'download', 'import', 'export']
+      },
+      {
+        email: 'manager@mbelyco.com',
+        password: 'manager123',
+        name: 'Sarah U.',
+        role: 'manager',
+        permissions: ['create', 'read', 'update', 'download', 'import']
+      },
+      {
+        email: 'user@mbelyco.com',
+        password: 'user123',
+        name: 'User',
+        role: 'user',
+        permissions: ['read']
+      }
+    ];
+
+    // DOM elements
+    const loginForm = document.getElementById('loginForm');
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    const passwordToggle = document.getElementById('passwordToggle');
+    const rememberCheckbox = document.getElementById('remember');
+    const loginBtn = document.getElementById('loginBtn');
+
+    // Password toggle functionality
+    passwordToggle.addEventListener('click', () => {
+      const isPassword = passwordInput.type === 'password';
+      passwordInput.type = isPassword ? 'text' : 'password';
+      passwordToggle.classList.toggle('active', !isPassword);
+      
+      // Update icon
+      const icon = passwordToggle.querySelector('.toggle-icon');
+      icon.setAttribute('data-lucide', isPassword ? 'eye-off' : 'eye');
+      lucide.createIcons();
+    });
+
+
+    // Form submission
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const email = emailInput.value.trim();
+      const password = passwordInput.value;
+      const remember = rememberCheckbox.checked;
+
+      if (!email || !password) {
+        showError('Please fill in all fields');
+        return;
+      }
+
+      // Show loading state
+      loginBtn.classList.add('loading');
+      loginBtn.innerHTML = '<span>Signing in...</span>';
+
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      // Find user
+      const user = demoUsers.find(u => u.email === email && u.password === password);
+      
+      if (user) {
+        // Store user session
+        const sessionData = {
+          user: {
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            permissions: user.permissions
+          },
+          remember: remember,
+          timestamp: Date.now()
+        };
+
+        if (remember) {
+          localStorage.setItem('mbelyco-session', JSON.stringify(sessionData));
+        } else {
+          sessionStorage.setItem('mbelyco-session', JSON.stringify(sessionData));
+        }
+
+        // Show success and redirect
+        showSuccess(`Welcome back, ${user.name}!`);
+        
+        setTimeout(() => {
+          window.location.href = 'index.html';
+        }, 1000);
+      } else {
+        showError('Invalid email or password');
+        loginBtn.classList.remove('loading');
+        loginBtn.innerHTML = '<span>Sign In</span><i data-lucide="arrow-right"></i>';
+        lucide.createIcons();
+      }
+    });
+
+    // Error/Success messages
+    function showError(message) {
+      // Remove existing messages
+      const existing = document.querySelector('.message');
+      if (existing) existing.remove();
+
+      const messageEl = document.createElement('div');
+      messageEl.className = 'message error';
+      messageEl.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #ef4444;
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        font-weight: 500;
+        z-index: 1000;
+        animation: slideIn 0.3s ease;
+      `;
+      messageEl.textContent = message;
+      document.body.appendChild(messageEl);
+
+      setTimeout(() => {
+        messageEl.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => messageEl.remove(), 300);
+      }, 3000);
+    }
+
+    function showSuccess(message) {
+      const messageEl = document.createElement('div');
+      messageEl.className = 'message success';
+      messageEl.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: var(--color-primary);
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        font-weight: 500;
+        z-index: 1000;
+        animation: slideIn 0.3s ease;
+      `;
+      messageEl.textContent = message;
+      document.body.appendChild(messageEl);
+
+      setTimeout(() => {
+        messageEl.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => messageEl.remove(), 300);
+      }, 3000);
+    }
+
+    // Add CSS for animations
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+      }
+      @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+      }
+    `;
+    document.head.appendChild(style);
+
+    // Check for existing session
+    window.addEventListener('load', () => {
+      const session = localStorage.getItem('mbelyco-session') || sessionStorage.getItem('mbelyco-session');
+      if (session) {
+        try {
+          const sessionData = JSON.parse(session);
+          // Check if session is still valid (24 hours)
+          if (Date.now() - sessionData.timestamp < 24 * 60 * 60 * 1000) {
+            // Auto redirect if already logged in
+            window.location.href = 'index.html';
+          }
+        } catch (e) {
+          // Invalid session data
+          localStorage.removeItem('mbelyco-session');
+          sessionStorage.removeItem('mbelyco-session');
+        }
+      }
+    });
+  </script>
+</body>
+</html>
