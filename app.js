@@ -114,6 +114,14 @@
 
   // Rendering
   function renderKPIs(){
+    if (state.kpis) {
+      const { total_codes = 0, redemptions = 0, active_batches = 0, disbursed = 0 } = state.kpis || {};
+      const totalCodesEl = el('kpiTotalCodes'); if(totalCodesEl) totalCodesEl.textContent = Number(total_codes).toLocaleString();
+      const redemptionsEl = el('kpiRedemptions'); if(redemptionsEl) redemptionsEl.textContent = Number(redemptions).toLocaleString();
+      const activeBatchesEl = el('kpiActiveBatches'); if(activeBatchesEl) activeBatchesEl.textContent = String(active_batches);
+      const disbursedEl = el('kpiDisbursed'); if(disbursedEl) disbursedEl.textContent = Number(disbursed).toLocaleString();
+      return;
+    }
     const totalCodes = state.batches.reduce((s,b)=>s+b.total_codes,0);
     const redemptions = state.codes.filter(c=>c.status==='redeemed').length;
     const activeBatches = state.batches.filter(b=>b.status==='active').length;
@@ -175,9 +183,12 @@
     filtered.forEach(b=>{
         const tr = document.createElement('tr');
         const expires = b.expiration_date ? fmtDate(b.expiration_date) : 'N/A';
-        // Simulate progress: redeemed among total
-        const redeemed = state.codes.filter(c=>c.batch_id===b.id && (c.status==='redeemed' || c.status==='used')).length;
-        const pct = Math.min(100, Math.round((redeemed / b.total_codes) * 100));
+        // Use backend redeemed_count when available, fallback to local calc
+        const redeemed = (typeof b.redeemed_count === 'number')
+          ? b.redeemed_count
+          : state.codes.filter(c=>c.batch_id===b.id && (c.status==='redeemed' || c.status==='used')).length;
+        const total = Math.max(0, Number(b.total_codes) || 0);
+        const pct = total>0 ? Math.min(100, Math.round((redeemed / total) * 100)) : 0;
         const statusChip = b.status==='active'?'success':(b.status==='expired'?'muted':(b.status==='completed'?'success':'warn'));
         const actionLabel = b.status === 'blocked' ? 'Enable' : 'Block';
         const actionKey = b.status === 'blocked' ? 'enable' : 'block';
@@ -241,74 +252,97 @@
       return;
     }
     body.innerHTML='';
-    const q = search.toUpperCase();
-    const filtered = state.codes
-      .filter(c=>(!q || c.code.includes(q) || c.batch_name.toUpperCase().includes(q)))
-      .filter(c=>!statusFilter || c.status===statusFilter);
-    // pagination
-    const totalItems = filtered.length;
-    const totalPages = Math.max(1, Math.ceil(totalItems / CODES_PAGE_SIZE));
-    if(state.codesPage > totalPages) state.codesPage = totalPages;
-    if(state.codesPage < 1) state.codesPage = 1;
-    const start = (state.codesPage - 1) * CODES_PAGE_SIZE;
-    const pageItems = filtered.slice(start, start + CODES_PAGE_SIZE);
-    
-    // Debug logging
-    console.log('renderCodes debug:', {
-      totalCodes: state.codes.length,
-      filtered: filtered.length,
-      totalItems,
-      totalPages,
-      currentPage: state.codesPage,
-      pageItems: pageItems.length
-    });
 
-    pageItems.forEach(c=>{
-        const tr = document.createElement('tr');
-        const actionLabel = c.status === 'blocked' ? 'Enable' : 'Block';
-        const actionKey = c.status === 'blocked' ? 'enable' : 'block';
-        tr.innerHTML = `
-          <td><input type="checkbox" data-id="${c.id}" /></td>
-          <td>
-            <div class="code-pill">
-              <span class="code-value">${c.code}</span>
-              <button class="copy-code" data-copy="${c.code}" aria-label="Copy code"><i data-lucide="copy"></i> <span>Copy</span></button>
-            </div>
-          </td>
-          <td>${c.amount.toLocaleString()} ${c.currency}</td>
-          <td>${c.batch_name}</td>
-          <td><span class="status ${badgeStatus(c.status)}">${c.status}</span></td>
-          <td>${fmtDate(c.created_at)}</td>
-          <td>
-            <div class="row-actions center">
-              <button class="icon-btn" data-code-more="${c.id}" aria-label="More options"><i data-lucide="more-vertical"></i></button>
-              <div class="menu" id="code-menu-${c.id}">
-                <button data-code-menu="view" data-code="${c.id}">View</button>
-                <button data-code-menu="${actionKey}" data-code="${c.id}">${actionLabel}</button>
-                <button data-code-menu="copy" data-code="${c.code}">Copy Code</button>
+    const params = new URLSearchParams();
+    params.set('page', String(state.codesPage || 1));
+    params.set('pageSize', String(CODES_PAGE_SIZE));
+    if (search) params.set('search', search);
+    if (statusFilter) params.set('status', statusFilter);
+
+    fetch(`/api/promo-codes?${params.toString()}`)
+      .then(r=>r.json())
+      .then(data=>{
+        const items = (data && data.items) ? data.items : [];
+        state.codes = items.map(c=>({
+          id: c.id,
+          code: c.code,
+          batch_id: c.batch_id,
+          batch_name: c.batch_name,
+          amount: Number(c.amount),
+          currency: c.currency || 'RWF',
+          status: c.status,
+          created_at: c.created_at ? new Date(c.created_at) : new Date()
+        }));
+        state.codeCounts = data && data.counts ? data.counts : null;
+
+        const totalItems = (state.codeCounts && typeof state.codeCounts.total === 'number') ? state.codeCounts.total : state.codes.length;
+        const totalPages = Math.max(1, Math.ceil(totalItems / CODES_PAGE_SIZE));
+        if(state.codesPage > totalPages) state.codesPage = totalPages;
+        if(state.codesPage < 1) state.codesPage = 1;
+
+        // Debug logging
+        console.log('renderCodes fetch debug:', {
+          totalItems, totalPages, currentPage: state.codesPage, pageItems: state.codes.length
+        });
+
+        state.codes.forEach(c=>{
+          const tr = document.createElement('tr');
+          const actionLabel = c.status === 'blocked' ? 'Enable' : 'Block';
+          const actionKey = c.status === 'blocked' ? 'enable' : 'block';
+          tr.innerHTML = `
+            <td><input type="checkbox" data-id="${c.id}" /></td>
+            <td>
+              <div class="code-pill">
+                <span class="code-value">${c.code}</span>
+                <button class="copy-code" data-copy="${c.code}" aria-label="Copy code"><i data-lucide="copy"></i> <span>Copy</span></button>
               </div>
-            </div>
-          </td>`;
-        body.appendChild(tr);
+            </td>
+            <td>${c.amount.toLocaleString()} ${c.currency}</td>
+            <td>${c.batch_name || ''}</td>
+            <td><span class="status ${badgeStatus(c.status)}">${c.status}</span></td>
+            <td>${fmtDate(c.created_at)}</td>
+            <td>
+              <div class="row-actions center">
+                <button class="icon-btn" data-code-more="${c.id}" aria-label="More options"><i data-lucide="more-vertical"></i></button>
+                <div class="menu" id="code-menu-${c.id}">
+                  <button data-code-menu="view" data-code="${c.id}">View</button>
+                  <button data-code-menu="${actionKey}" data-code="${c.id}">${actionLabel}</button>
+                  <button data-code-menu="copy" data-code="${c.code}">Copy Code</button>
+                </div>
+              </div>
+            </td>`;
+          body.appendChild(tr);
+        });
+
+        if(window.lucide) window.lucide.createIcons();
+        fixSelectIcons();
+        // update counts and items
+        updatePromoCounts();
+        const pcItems = el('pcItemsCount'); if(pcItems) pcItems.textContent = Number(totalItems).toLocaleString();
+        const pcPageIdx = el('pcPageIndex'); if(pcPageIdx) pcPageIdx.textContent = String(state.codesPage);
+        const pcPageTotal = el('pcPageTotal'); if(pcPageTotal) pcPageTotal.textContent = String(totalPages);
+        const prevBtn = el('pcPagePrev'); if(prevBtn) prevBtn.disabled = state.codesPage <= 1;
+        const nextBtn = el('pcPageNext'); if(nextBtn) nextBtn.disabled = state.codesPage >= totalPages;
+      })
+      .catch(err=>{
+        console.error('Failed to load promo codes', err);
       });
-    if(window.lucide) window.lucide.createIcons();
-    fixSelectIcons();
-    // update counts and items
-    updatePromoCounts();
-    const pcItems = el('pcItemsCount'); if(pcItems) pcItems.textContent = totalItems.toLocaleString();
-    const pcPageIdx = el('pcPageIndex'); if(pcPageIdx) pcPageIdx.textContent = String(state.codesPage);
-    const pcPageTotal = el('pcPageTotal'); if(pcPageTotal) pcPageTotal.textContent = String(totalPages);
-    const prevBtn = el('pcPagePrev'); if(prevBtn) prevBtn.disabled = state.codesPage <= 1;
-    const nextBtn = el('pcPageNext'); if(nextBtn) nextBtn.disabled = state.codesPage >= totalPages;
   }
 
   function updatePromoCounts(){
+    if (state.codeCounts) {
+      const map = [
+        ['pcCountAll','total'],['pcCountActive','active'],['pcCountUsed','used'],['pcCountRedeemed','redeemed'],['pcCountExpired','expired'],['pcCountBlocked','blocked']
+      ];
+      map.forEach(([id,key])=>{ const n = el(id); if(n) n.textContent = Number(state.codeCounts[key] || 0).toLocaleString(); });
+      return;
+    }
     const counts = { all: state.codes.length, active:0, used:0, redeemed:0, expired:0, blocked:0 };
     state.codes.forEach(c=>{ if(counts[c.status]!==undefined) counts[c.status]++; });
-    const map = [
+    const fallbackMap = [
       ['pcCountAll','all'],['pcCountActive','active'],['pcCountUsed','used'],['pcCountRedeemed','redeemed'],['pcCountExpired','expired'],['pcCountBlocked','blocked']
     ];
-    map.forEach(([id,key])=>{ const n = el(id); if(n) n.textContent = counts[key].toLocaleString(); });
+    fallbackMap.forEach(([id,key])=>{ const n = el(id); if(n) n.textContent = counts[key].toLocaleString(); });
   }
 
   // Monitoring removed
@@ -3086,43 +3120,65 @@ function saveSettings() {
   // Entry
   function init(){
     console.log('Initializing application...');
-    seed();
-    console.log('Seed completed, data:', { batches: state.batches.length, codes: state.codes.length });
-    
-    // Temporarily bypass authentication for testing
-    state.isAuthenticated = true;
-    state.user = { name: 'Test User', permissions: ['read', 'create', 'import', 'export'] };
-    
-    initAuth();
-    initTabs();
-    initTheme();
-    initSearch();
-    initDownload();
-    initBulkActions();
-    initPromoStatusTabs();
-    initSettings();
-    initUserManagement();
-    initReports();
-    initRedemptions();
-    initPayments();
-    initFrauds();
-    initAlerts();
-    initEnhancedDashboard();
-    // ensure card delegates are bound for initially visible view (dashboard) and for batches/promo-codes
-    bindCardDelegatesFor('batches');
-    initBatchStatusTabs();
-    bindCardDelegatesFor('promo-codes');
-    renderKPIs();
-    renderActivity();
-    
-    console.log('About to render batches and codes...');
-    renderBatches('');
-    renderCodes('', '');
-    console.log('Rendering completed');
-    
-    // monitoring removed
-    if(window.lucide) window.lucide.createIcons();
-    fixSelectIcons();
+    // seed(); // replaced with live API data
+
+    const initialStatus = getActiveStatus ? getActiveStatus() : '';
+    const searchVal = (el('codesSearch') && el('codesSearch').value) || '';
+
+    Promise.all([
+      fetch('/api/kpis').then(r=>r.json()).catch(()=>null),
+      fetch('/api/batches').then(r=>r.json()).catch(()=>[])
+    ]).then(([kpis, batches])=>{
+      if (kpis) state.kpis = kpis;
+      const batchArr = Array.isArray(batches) ? batches : [];
+      state.batches = batchArr.map(b=>({
+        id: b.id,
+        name: b.name,
+        description: b.description,
+        total_codes: b.total_codes,
+        amount_per_code: Number(b.amount_per_code),
+        currency: b.currency||'RWF',
+        expiration_date: b.expiration_date ? new Date(b.expiration_date) : null,
+        assigned_user: b.assigned_user_id || 'Unassigned',
+        status: b.status,
+        created_at: b.created_at ? new Date(b.created_at) : null,
+        redeemed_count: b.redeemed_count || 0
+      }));
+      
+      // Temporarily bypass authentication for testing
+      state.isAuthenticated = true;
+      state.user = { name: 'Test User', permissions: ['read', 'create', 'import', 'export'] };
+      
+      initAuth();
+      initTabs();
+      initTheme();
+      initSearch();
+      initDownload();
+      initBulkActions();
+      initPromoStatusTabs();
+      initSettings();
+      initUserManagement();
+      initReports();
+      initRedemptions();
+      initPayments();
+      initFrauds();
+      initAlerts();
+      initEnhancedDashboard();
+      // ensure card delegates are bound for initially visible view (dashboard) and for batches/promo-codes
+      bindCardDelegatesFor('batches');
+      initBatchStatusTabs();
+      bindCardDelegatesFor('promo-codes');
+
+      renderKPIs();
+      renderActivity();
+      renderBatches('');
+      renderCodes(searchVal, initialStatus);
+
+      if(window.lucide) window.lucide.createIcons();
+      fixSelectIcons();
+    }).catch(err=>{
+      console.error('Failed to load initial data', err);
+    });
   }
 
   // Initialize Quick Actions
