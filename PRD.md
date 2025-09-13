@@ -1,7 +1,7 @@
 📘 Product Requirement Document (PRD)
 
 📌 Product Name (Working Title):
-MBELYCO Promo v2.0 - Promo Code Management System.
+MBELYCO Promo 2.0 - Promo Code Management System.
 
 🎯 Objective
 MBELYCO Promo v2.0 is a comprehensive Promotional Code Management System 
@@ -1744,6 +1744,303 @@ Complete activity tracking and audit trail system with immutable records, compli
 - `security.alerts.view` - View security alerts and incidents
 - `security.incidents.manage` - Manage security incidents and responses
 - `audit.logs.configure` - Configure audit logging settings and retention policies
+
+## ⚙️ Tech Stack<
+
+The MBELYCO Promo v2.0 system is built using a modern, modular monolith architecture.
+
+### Frontend Architecture
+
+**Core Framework**:
+- **[Next.js with App Router](https://nextjs.org/docs)** is a powerful React framework for building full-stack web applications. It simplifies development with features like server-side rendering, static site generation, and API routes, enabling developers to focus on building products and shipping quickly.
+
+- **[TypeScript](https://www.typescriptlang.org/)** is a superset of JavaScript that adds static typing, providing better tooling, code quality, and error detection for developers. It is ideal for building large-scale applications and enhances the development experience.
+
+- **[TailwindCSS](https://tailwindcss.com/)** is a utility-first CSS framework that allows developers to build custom, responsive designs quickly without leaving their HTML. It provides pre-defined classes for layout, typography, colors, and more.
+
+**State Management & Forms**:
+- **[Zustand](https://zustand-demo.pmnd.rs)** is a minimal, hook-based state management library for React. It lets you manage global state with zero boilerplate, no context providers, and excellent performance through selective state subscriptions.
+
+- **[React Hook Form](https://react.dev/reference/react/hooks/)** is a popular library for handling forms in React. It focuses on simplicity, performance, and minimal re-renders, using React hooks. Instead of manually managing state for each input, RHF provides a more declarative and efficient way to work with forms.
+
+- **[Zod](https://zod.dev/)** is a TypeScript-first validation library. Using Zod, you can define schemas you can use to validate data, from a simple `string` to a complex nested object.
+
+### Backend Architecture
+
+**Next.js API Routes**: Serverless API endpoints
+
+**Database & ORM**:
+- **[Neon](https://neon.com/)** is a fully managed, serverless PostgreSQL database platform. It offers features like instant provisioning, autoscaling, and database branching, enabling developers to build scalable applications without managing infrastructure.
+
+- **[Drizzle ORM](https://orm.drizzle.team/)** is a lightweight and performant TypeScript ORM designed with developer experience in mind. It provides a seamless interface between application code and database operations while maintaining high performance and reliability.
+
+**Authentication**:
+- **[Better Auth](https://www.better-auth.com/)** is a framework-agnostic authentication and authorization library for TypeScript. It provides built-in support for email and password authentication, social sign-on (Google, GitHub, Apple, and more), and multi-factor authentication, simplifying user authentication and account management.
+
+- **[OAuth 2.0](https://oauth.net/2/)** is an open standard protocol that allows applications to access a user’s resources on another service without exposing the user’s credentials. Standard protocol for MTN MoMo API authentication and authorization.
+
+**Queue Processing**:
+- **[BullMQ](https://docs.bullmq.io/)** is a Node.js library that implements a fast and robust queue system built on top of Redis that helps in resolving many modern age micro-services architectures. Robust queue system built on Redis for background job processing and disbursement handling.
+
+### Integration Layer
+
+**Disbursements**:
+- **[MTN MoMo Disbursements](https://momodeveloper.mtn.com/product#product=disbursements)** is a service offered by MTN MoMo that enables businesses to automatically send funds to multiple mobile money users in a single transaction. By subscribing, partners can integrate features like QR code payments, refunds, and fund transfers with status updates into their platforms. Additionally, they can access detailed Know Your Customer (KYC) information.
+
+**USSD Gateway**:
+- **[Africa’s Talking USSD API](https://developers.africastalking.com/docs/ussd/handle_sessions)** enables developers and businesses to create interactive, menu-based services that users can access via USSD codes, without requiring mobile data.
+
+**Caching and sessions**: 
+- **[Upstash Redis](https://upstash.com/docs/redis/overall/getstarted)** is a serverless, cloud-hosted Redis solution designed for modern applications. Think of it as Redis, but without the hassle of managing servers, scaling, or infrastructure.
+
+- **[Jest](https://jestjs.io/docs/getting-started)** is JavaScript Testing Framework.
+
+### Core Business Logic Implementation
+
+#### Promo Code Generation Service
+```typescript
+export class PromoCodeGenerator {
+  private static readonly CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  
+  static generateCode(createdAt: Date): string {
+    const random = (length: number): string => {
+      return Array.from({ length }, () => 
+        this.CHARS[Math.floor(Math.random() * this.CHARS.length)]
+      ).join('');
+    };
+    
+    const YY = createdAt.getFullYear().toString().slice(-2);
+    const MM = String(createdAt.getMonth() + 1).padStart(2, '0');
+    const DD = String(createdAt.getDate()).padStart(2, '0');
+    
+    return `${random(4)}-${random(2)}${YY}-${random(2)}${MM}-${random(2)}${DD}`;
+  }
+  
+  static validateCode(code: string): boolean {
+    const pattern = /^[A-Z0-9]{4}-[A-Z0-9]{2}[0-9]{2}-[A-Z0-9]{2}[0-9]{2}-[A-Z0-9]{2}[0-9]{2}$/;
+    return pattern.test(code);
+  }
+}
+```
+
+#### USSD Service Implementation
+```typescript
+export class USSDService {
+  async handleUSSDRequest(request: USSDRequest): Promise<USSDResponse> {
+    try {
+      // Auto-register user if not exists
+      const user = await this.ensureUserExists(request.phoneNumber);
+      
+      // Parse USSD input
+      const input = request.text?.trim();
+      
+      if (!input) {
+        return this.showWelcomeMessage();
+      }
+      
+      // Validate promo code format
+      if (!PromoCodeGenerator.validateCode(input)) {
+        return this.showInvalidCodeMessage();
+      }
+      
+      // Check idempotency
+      const existingRedemption = await this.checkExistingRedemption(
+        user.id, 
+        input
+      );
+      
+      if (existingRedemption) {
+        return this.showAlreadyRedeemedMessage();
+      }
+      
+      // Process redemption
+      const redemption = await this.processRedemption(user.id, input);
+      
+      if (redemption.success) {
+        return this.showSuccessMessage(redemption.amount);
+      } else {
+        return this.showErrorMessage(redemption.error);
+      }
+      
+    } catch (error) {
+      console.error('USSD processing error:', error);
+      return this.showErrorMessage('System temporarily unavailable');
+    }
+  }
+  
+  private async ensureUserExists(phoneNumber: string): Promise<User> {
+    let user = await this.userRepository.findByPhoneNumber(phoneNumber);
+    
+    if (!user) {
+      user = await this.userRepository.create({
+        phone_number: phoneNumber,
+        is_active: true,
+        is_verified: true
+      });
+    }
+    
+    return user;
+  }
+}
+```
+
+#### Disbursement Queue Processing
+```typescript
+export class DisbursementProcessor {
+  async processDisbursement(job: DisbursementJob): Promise<void> {
+    const { redemptionId, amount, phoneNumber } = job.data;
+    
+    try {
+      // Process MoMo disbursement
+      const momoResponse = await this.momoService.transfer({
+        amount,
+        phoneNumber,
+        reference: `REDEEM-${redemptionId}`
+      });
+      
+      // Update redemption status
+      await this.redemptionRepository.update(redemptionId, {
+        status: 'completed',
+        momo_transaction_id: momoResponse.transactionId,
+        momo_reference: momoResponse.reference,
+        disbursed_at: new Date()
+      });
+      
+      // Log audit trail
+      await this.auditLogger.log({
+        action: 'disbursement_completed',
+        entity_type: 'redemption',
+        entity_id: redemptionId,
+        new_values: { status: 'completed' }
+      });
+      
+    } catch (error) {
+      // Mark as failed after max retries
+      if (job.attemptsMade >= job.opts.attempts) {
+        await this.redemptionRepository.update(redemptionId, {
+          status: 'failed',
+          error_message: error.message
+        });
+        
+        // Send alert to admin
+        await this.notificationService.sendAlert({
+          type: 'disbursement_failed',
+          redemptionId,
+          error: error.message
+        });
+      } else {
+        throw error; // Retry
+      }
+    }
+  }
+}
+```
+
+## 🔌 API Documentation
+
+### Enhanced REST API Structure
+```
+/api/v1/
+├── auth/                             # Authentication endpoints
+│   ├── login/                        # POST - User authentication
+│   ├── logout/                       # POST - Session termination
+│   ├── refresh/                      # POST - Token refresh
+│   ├── me/                           # GET - Current user info
+│   └── register/                     # POST - User registration
+├── admin/                            # Admin panel endpoints
+│   ├── batches/                      # Batch management
+│   │   ├── GET /                     # List batches with pagination
+│   │   ├── POST /                    # Create new batch
+│   │   ├── GET /{id}                 # Get batch details
+│   │   ├── PUT /{id}                 # Update batch
+│   │   ├── DELETE /{id}              # Delete batch
+│   │   ├── POST /generate/           # Generate codes for batch
+│   │   ├── POST /import/             # Import codes to batch
+│   │   ├── GET /download/            # Download batch data (PDF/CSV)
+│   │   ├── POST /{id}/assign         # Assign batch to user
+│   │   ├── PUT /{id}/status          # Change batch status
+│   │   └── GET /{id}/stats           # Get batch statistics
+│   ├── promo-codes/                  # Promo code operations
+│   │   ├── GET /                     # List promo codes with filters
+│   │   ├── GET /{id}                 # Get promo code details
+│   │   ├── PUT /{id}                 # Update promo code
+│   │   ├── DELETE /{id}              # Delete promo code
+│   │   ├── POST /generate/           # Generate new codes
+│   │   ├── POST /import/             # Import codes from CSV
+│   │   ├── GET /download/            # Download codes (PDF/CSV)
+│   │   ├── PUT /{id}/status          # Change code status
+│   │   ├── POST /bulk/               # Bulk operations
+│   │   ├── POST /validate/           # Validate code format
+│   │   ├── GET /search/              # Search codes
+│   │   └── GET /stats/               # Get code statistics
+│   ├── redemptions/                  # Redemption tracking
+│   │   ├── GET /                     # List redemptions
+│   │   ├── GET /{id}                 # Get redemption details
+│   │   ├── GET /download/            # Download redemption data
+│   │   ├── POST /{id}/retry          # Retry failed redemption
+│   │   ├── GET /stats/               # Get redemption statistics
+│   │   └── GET /search/              # Search redemptions
+│   ├── disbursements/                # Payment monitoring
+│   │   ├── GET /                     # List disbursements
+│   │   ├── GET /{id}                 # Get disbursement details
+│   │   ├── POST /{id}/retry          # Retry failed disbursement
+│   │   ├── GET /reconcile/           # Reconcile with MTN MoMo
+│   │   ├── GET /stats/               # Get disbursement statistics
+│   │   └── GET /export/              # Export disbursement data
+│   ├── users/                        # User management
+│   │   ├── GET /                     # List users
+│   │   ├── POST /                    # Create user
+│   │   ├── GET /{id}                 # Get user details
+│   │   ├── PUT /{id}                 # Update user
+│   │   ├── DELETE /{id}              # Delete user
+│   │   ├── POST /{id}/roles          # Assign roles
+│   │   ├── DELETE /{id}/roles        # Remove roles
+│   │   ├── GET /{id}/permissions     # Get user permissions
+│   │   ├── GET /stats/               # Get user statistics
+│   │   ├── GET /pending/             # Get pending registrations
+│   │   ├── POST /{id}/approve        # Approve registration
+│   │   ├── POST /{id}/reject         # Reject registration
+│   │   └── GET /registration-status  # Get registration settings
+│   ├── reports/                      # Analytics and reporting
+│   │   ├── GET /dashboard/           # Dashboard metrics
+│   │   ├── GET /batches/             # Batch performance reports
+│   │   ├── GET /financial/           # Financial reports
+│   │   ├── POST /custom/             # Generate custom reports
+│   │   ├── GET /export/              # Export reports
+│   │   └── GET /schedule/            # Scheduled reports
+│   └── settings/                     # System configuration
+│       ├── GET /                     # Get system settings
+│       ├── PUT /                     # Update system settings
+│       ├── GET /permissions          # Get permissions
+│       ├── GET /roles/               # Get user roles
+│       ├── POST /backup/             # Backup settings
+│       ├── POST /restore/            # Restore settings
+│       ├── GET /export/              # Export settings
+│       ├── POST /import/             # Import settings
+│       ├── GET /branding/            # Get branding settings
+│       ├── PUT /branding/            # Update branding settings
+│       ├── GET /ussd/                # Get USSD settings
+│       ├── PUT /ussd/                # Update USSD settings
+│       ├── GET /payments/            # Get payment settings
+│       ├── PUT /payments/            # Update payment settings
+│       ├── GET /security/            # Get security settings
+│       ├── PUT /security/            # Update security settings
+│       ├── GET /notifications/       # Get notification settings
+│       ├── PUT /notifications/       # Update notification settings
+│       ├── GET /integrations/        # Get integration settings
+│       └── PUT /integrations/        # Update integration settings
+├── ussd/                             # USSD handling
+│   ├── handle/                       # POST - USSD request processing
+│   ├── session/                      # GET - Get session info
+│   └── status/                       # GET - USSD service status
+└── webhooks/                         # External integrations
+    ├── momo/                         # MTN MoMo callbacks
+    │   ├── disbursements/            # POST - Disbursement status updates
+    │   └── balance/                  # POST - Balance updates
+    └── ussd/                         # USSD provider callbacks
+        ├── status/                   # POST - USSD session status
+        └── delivery/                 # POST - Message delivery status
+```
 
 ## 🗄️ Database Design Schema
 
