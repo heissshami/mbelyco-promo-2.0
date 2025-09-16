@@ -7,6 +7,14 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
+  <style>
+    .metric-change,
+    .stage-percentage,
+    .funnel-rate,
+    [data-lucide="percent"] {
+      display: none;
+    }
+  </style>
   <link rel="stylesheet" href="./styles.css" />
   <script src="https://unpkg.com/lucide@latest"></script>
 </head>
@@ -186,165 +194,12 @@
 
 
 
-          <!-- System Health Monitor -->
-          <div class="chart-container">
-            <div class="chart-header">
-              <h3>System Health</h3>
-              <div class="health-status">
-                <span class="health-dot healthy"></span>
-                <span class="health-text">All Systems Operational</span>
-              </div>
-            </div>
-            <div class="health-metrics">
-              <div class="health-metric">
-                <div class="health-icon">
-                  <i data-lucide="server"></i>
-                </div>
-                <div class="health-content">
-                  <div class="health-value">99.9%</div>
-                  <div class="health-label">Uptime</div>
-                  <div class="health-indicator healthy"></div>
-                </div>
-              </div>
-              <div class="health-metric">
-                <div class="health-icon">
-                  <i data-lucide="zap"></i>
-                </div>
-                <div class="health-content">
-                  <div class="health-value">45ms</div>
-                  <div class="health-label">Response Time</div>
-                  <div class="health-indicator healthy"></div>
-                </div>
-              </div>
-              <div class="health-metric">
-                <div class="health-icon">
-                  <i data-lucide="database"></i>
-                </div>
-                <div class="health-content">
-                  <div class="health-value">2.1GB</div>
-                  <div class="health-label">Database Size</div>
-                  <div class="health-indicator warning"></div>
-                </div>
-              </div>
-              <div class="health-metric">
-                <div class="health-icon">
-                  <i data-lucide="cpu"></i>
-                </div>
-                <div class="health-content">
-                  <div class="health-value">23%</div>
-                  <div class="health-label">CPU Usage</div>
-                  <div class="health-indicator healthy"></div>
-                </div>
-              </div>
-            </div>
-          </div>
 
-          <!-- Conversion Funnel -->
-          <div class="chart-container">
-            <div class="chart-header">
-              <h3>Conversion Funnel</h3>
-              <div class="funnel-stats">
-                <span class="funnel-rate">94.2% Success Rate</span>
-              </div>
-            </div>
-            <div class="conversion-funnel">
-              <div class="funnel-stage">
-                <div class="stage-icon">
-                  <i data-lucide="package"></i>
-                </div>
-                <div class="stage-content">
-                  <div class="stage-value">2,583</div>
-                  <div class="stage-label">Codes Generated</div>
-                  <div class="stage-percentage">100%</div>
-                </div>
-              </div>
-              <div class="funnel-arrow">↓</div>
-              <div class="funnel-stage">
-                <div class="stage-icon">
-                  <i data-lucide="send"></i>
-                </div>
-                <div class="stage-content">
-                  <div class="stage-value">2,521</div>
-                  <div class="stage-label">Codes Distributed</div>
-                  <div class="stage-percentage">97.6%</div>
-                </div>
-              </div>
-              <div class="funnel-arrow">↓</div>
-              <div class="funnel-stage">
-                <div class="stage-icon">
-                  <i data-lucide="check-circle"></i>
-                </div>
-                <div class="stage-content">
-                  <div class="stage-value">2,847</div>
-                  <div class="stage-label">Codes Redeemed</div>
-                  <div class="stage-percentage">94.2%</div>
-                </div>
-              </div>
-              <div class="funnel-arrow">↓</div>
-              <div class="funnel-stage">
-                <div class="stage-icon">
-                  <i data-lucide="dollar-sign"></i>
-                </div>
-                <div class="stage-content">
-                  <div class="stage-value">RWF 14.2M</div>
-                  <div class="stage-label">Total Disbursed</div>
-                  <div class="stage-percentage">100%</div>
-                </div>
-              </div>
-            </div>
-          </div>
 
         </div>
 
         <!-- Activity Feed -->
-        <div class="activity-section">
-          <div class="activity-header">
-            <h3>Recent Activity</h3>
-            <button class="btn ghost" id="viewAllActivity">View All</button>
-          </div>
-          <div class="activity-feed" id="activityFeed">
-            <div class="activity-item">
-              <div class="activity-icon">
-                <i data-lucide="check-circle"></i>
-              </div>
-              <div class="activity-content">
-                <div class="activity-title">Redemption completed</div>
-                <div class="activity-description">Code MBL2024ABC123 redeemed by John Doe</div>
-                <div class="activity-time">2 minutes ago</div>
-              </div>
-            </div>
-            <div class="activity-item">
-              <div class="activity-icon">
-                <i data-lucide="package"></i>
-              </div>
-              <div class="activity-content">
-                <div class="activity-title">New batch created</div>
-                <div class="activity-description">Holiday Promo 2024 batch with 500 codes</div>
-                <div class="activity-time">15 minutes ago</div>
-              </div>
-            </div>
-            <div class="activity-item">
-              <div class="activity-icon">
-                <i data-lucide="user-plus"></i>
-              </div>
-              <div class="activity-content">
-                <div class="activity-title">New user registered</div>
-                <div class="activity-description">Jane Smith joined the system</div>
-                <div class="activity-time">1 hour ago</div>
-              </div>
-            </div>
-            <div class="activity-item">
-              <div class="activity-icon">
-                <i data-lucide="alert-triangle"></i>
-              </div>
-              <div class="activity-content">
-                <div class="activity-title">System alert</div>
-                <div class="activity-description">High redemption rate detected</div>
-                <div class="activity-time">2 hours ago</div>
-              </div>
-            </div>
-          </div>
-        </div>
+
       </div>
     </section>
 
@@ -542,7 +397,7 @@
                  <i data-lucide="percent"></i>
                </div>
                <div class="metric-content">
-                 <div class="metric-value" id="successRate">94.2%</div>
+                 <div class="metric-value" id="successRate">94.2</div>
                  <div class="metric-label">Success Rate</div>
                  <div class="metric-change positive">+1.2% from last week</div>
                </div>
@@ -669,7 +524,7 @@
                  <i data-lucide="percent"></i>
                </div>
                <div class="metric-content">
-                 <div class="metric-value" id="paymentSuccessRate">96.8%</div>
+                 <div class="metric-value" id="paymentSuccessRate">96.8</div>
                  <div class="metric-label">Success Rate</div>
                  <div class="metric-change positive">+0.8% from last week</div>
                </div>
@@ -796,7 +651,7 @@
                  <i data-lucide="trending-down"></i>
                </div>
                <div class="metric-content">
-                 <div class="metric-value" id="fraudRate">0.4%</div>
+                 <div class="metric-value" id="fraudRate">0.4</div>
                  <div class="metric-label">Fraud Rate</div>
                  <div class="metric-change positive">-0.1% from last month</div>
                </div>
