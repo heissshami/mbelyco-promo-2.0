@@ -633,22 +633,7 @@
       
       if (user) {
         // Store user session
-        const sessionData = {
-          user: {
-            name: user.name,
-            email: user.email,
-            role: user.role,
-            permissions: user.permissions
-          },
-          remember: remember,
-          timestamp: Date.now()
-        };
-
-        if (remember) {
-          localStorage.setItem('mbelyco-session', JSON.stringify(sessionData));
-        } else {
-          sessionStorage.setItem('mbelyco-session', JSON.stringify(sessionData));
-        }
+        sessionStorage.setItem('loggedInUser', JSON.stringify(user));
 
         // Show success and redirect
         showSuccess(`Welcome back, ${user.name}!`);
