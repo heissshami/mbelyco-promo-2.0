@@ -80,9 +80,7 @@
 
 
 
-      <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
-        <a href="#" onclick="location.reload(); return false;" id="reloadBtn" class="btn ghost" aria-label="Reload Page" style="text-decoration: none;"><i data-lucide="refresh-cw"></i> Reload</a>
-      </div>
+
     </section>
   </main>
 
@@ -176,15 +174,15 @@
           const amountText = amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
           amountHTML = `<div class="status-line"><i data-lucide="banknote"></i><span><span class="muted">Amount:</span> $${amountText}</span></div>`;
         }
-        let redeemHTML = '';
+        let actionButtonsHTML = '';
         if (ok && status === 'active') {
-          redeemHTML = `<div style="margin-top:10px"><button id="redeemBtn" type="button" class="btn accent" aria-label="Redeem Code"><i data-lucide="gift" aria-hidden="true"></i> Redeem</button></div>`;
+          actionButtonsHTML = `<div style="margin-top:10px; display: flex; gap: 10px;"><button id="redeemBtn" type="button" class="btn accent" aria-label="Redeem Code"><i data-lucide="gift" aria-hidden="true"></i> Redeem</button><button id="checkOtherBtn" type="button" class="btn secondary" aria-label="Check another code"><i data-lucide="search" aria-hidden="true"></i> Check Other</button></div>`;
         }
         host.innerHTML = `
           <div class="title ${colorClass}"><i data-lucide="${icon}"></i> ${message}</div>
           ${status ? `<div class="status-line"><span class="status-badge ${statusBadgeClass}">${status.toUpperCase()}</span></div>` : ''}
           ${amountHTML}
-          ${redeemHTML}
+          ${actionButtonsHTML}
         `;
         if (window.lucide) window.lucide.createIcons();
       }
@@ -243,17 +241,27 @@
       });
 
       $('#result').addEventListener('click', async (e)=>{
-        const btn = e.target.closest('#redeemBtn');
-        if (!btn) return;
-        if (!lastCheck || lastCheck.status !== 'active') return;
-        btn.disabled = true; btn.classList.add('disabled');
-        await new Promise(r=>setTimeout(r, 600));
-        // Update state to redeemed (prototype)
-        lastCheck.status = 'redeemed';
-        if (lastCheck.code) {
-          sampleCodes.set(lastCheck.code, { status: 'redeemed', amount: lastCheck.amount || 0 });
+        const redeemBtn = e.target.closest('#redeemBtn');
+        const checkOtherBtn = e.target.closest('#checkOtherBtn');
+
+        if (redeemBtn) {
+            if (!lastCheck || lastCheck.status !== 'active') return;
+            redeemBtn.disabled = true; redeemBtn.classList.add('disabled');
+            await new Promise(r=>setTimeout(r, 600));
+            // Update state to redeemed (prototype)
+            lastCheck.status = 'redeemed';
+            if (lastCheck.code) {
+              sampleCodes.set(lastCheck.code, { status: 'redeemed', amount: lastCheck.amount || 0 });
+            }
+            renderResult({ ok:true, message:'Code redeemed successfully.', status:lastCheck.status, createdAt:lastCheck.createdAt, amount:lastCheck.amount });
         }
-        renderResult({ ok:true, message:'Code redeemed successfully.', status:lastCheck.status, createdAt:lastCheck.createdAt, amount:lastCheck.amount });
+
+        if (checkOtherBtn) {
+            $('#promoCode').value = '';
+            $('#result').classList.remove('show');
+            $('#result').innerHTML = '';
+            $('#promoCode').focus();
+        }
       });
 
       if (window.lucide) window.lucide.createIcons();
