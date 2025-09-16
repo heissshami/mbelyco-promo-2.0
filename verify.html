@@ -77,10 +77,22 @@
 
 
       <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
-        <a href="./index.html" class="btn ghost" aria-label="Back to Dashboard"><i data-lucide="arrow-left"></i> Back</a>
+        <a href="#" onclick="location.reload(); return false;" id="reloadBtn" class="btn ghost" aria-label="Reload Page" style="text-decoration: none;"><i data-lucide="refresh-cw"></i> Reload</a>
       </div>
     </section>
   </main>
+
+  <script>
+    (function(){
+      const user = JSON.parse(sessionStorage.getItem('loggedInUser'));
+      if (user && user.role === 'manager') {
+        const reloadBtn = document.getElementById('reloadBtn');
+        if (reloadBtn) {
+          reloadBtn.style.display = 'none';
+        }
+      }
+    })();
+  </script>
 
   <script>
     (function(){

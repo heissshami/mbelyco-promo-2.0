@@ -3167,7 +3167,15 @@ If you didn't request this, please ignore this email.</textarea>
 
   <!-- jsPDF UMD build -->
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-  <script src="./app.js"></script>
+  <script>
+      (function() {
+        const user = JSON.parse(sessionStorage.getItem('loggedInUser'));
+        if (user && user.role === 'manager') {
+          window.location.href = './verify.html';
+        }
+      })();
+    </script>
+    <script src="./app.js"></script>
   <script>
     window.lucide && window.lucide.createIcons();
   </script>
