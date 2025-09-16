@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Verify Promo Code — MBELYCO Promo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css" />
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    /* Page-scoped helpers (re-using global tokens) */
+    .center-wrap{min-height:100vh;display:grid;place-items:center;padding:24px}
+    .verify-card{width:100%;max-width:520px}
+    .verify-form{display:flex;gap:10px;align-items:flex-end;margin-top:10px}
+    .verify-form .input-col{flex:1}
+    .helper{color:var(--color-muted);font-size:var(--fs-xs);margin-top:6px}
+    .result{margin-top:14px;padding:12px;border:1px solid rgba(255,255,255,.08);border-radius:12px;background:var(--color-elev);display:none}
+    .result.show{display:block}
+    .result .title{font-weight:700;margin-bottom:6px}
+    .status-line{display:flex;align-items:center;gap:8px;margin-top:8px}
+    .status-badge{padding:4px 8px;border-radius:999px;font-size:var(--fs-xs);}
+    .badge-active{background:rgba(34,197,94,.15);color:#22c55e}
+    .badge-expired{background:rgba(148,163,184,.15);color:#94a3b8}
+    .badge-redeemed{background:rgba(34,197,94,.15);color:#22c55e}
+    .badge-blocked{background:rgba(239,68,68,.15);color:#ef4444}
+    .error-text{color:#ef4444;font-size:var(--fs-sm)}
+    .success-text{color:#22c55e;font-size:var(--fs-sm)}
+    .muted{color:var(--color-muted)}
+    .header{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+    .header .logo{width:40px;height:40px;border-radius:10px;display:grid;place-items:center}
+    .examples{margin-top:10px;color:var(--color-muted);font-size:var(--fs-xs)}
+    .examples code{font-weight:700;color:var(--color-text)}
+    /* Input styling to match app theme */
+    .input-wrapper{position:relative}
+    .input-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--color-muted);z-index:1;pointer-events:none}
+    .form-input{width:100%;appearance:none;background:var(--color-elev);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px 12px 10px 36px;color:var(--color-text);outline:none;transition:all var(--dur-med) var(--easing);font-family:"Montserrat", ui-sans-serif, system-ui}
+    .form-input:focus{border-color:var(--color-primary);box-shadow:0 0 0 4px rgba(21,160,0,.15);background:rgba(21,160,0,.06)}
+    .form-input::placeholder{color:var(--color-muted);opacity:.85}
+    .btn.disabled, .btn:disabled{opacity:.6;cursor:not-allowed}
+    @media (max-width: 480px){
+      .verify-form{flex-direction:column;align-items:stretch}
+    }
+  </style>
+</head>
+<body>
+  <main class="center-wrap">
+    <section class="card verify-card" aria-labelledby="verifyHeading">
+      <div class="header">
+        <img src="./logo.svg" alt="MBELYCO" class="logo" />
+        <div>
+          <h1 id="verifyHeading" class="panel-title">Verify Promo Code</h1>
+          <p class="muted" style="margin:4px 0 0">Enter your code to check validity and status</p>
+        </div>
+      </div>
+
+      <form id="verifyForm" novalidate>
+        <label for="promoCode" class="muted" style="display:block;margin-bottom:6px">Promo Code</label>
+        <div class="verify-form">
+            <div class="input-col">
+                <div class="input-wrapper" style="position:relative">
+                    <input id="promoCode" name="promoCode" type="text" placeholder="Enter the Code" class="form-input" style="width:100%;padding-left:40px" autocomplete="off" required aria-describedby="codeHelp" />
+                    <i data-lucide="scan-line" class="input-icon" aria-hidden="true"></i>
+                </div>
+            </div>
+            <button id="checkBtn" type="submit" class="btn primary" aria-label="Check Code">
+                <i data-lucide="check-circle-2" aria-hidden="true"></i>
+                Check
+            </button>
+        </div>
+        <div id="codeHelp" class="helper"></div>
+      </form>
+
+      <div id="result" class="result" role="status" aria-live="polite"></div>
+
+
+
+      <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
+        <a href="./index.html" class="btn ghost" aria-label="Back to Dashboard"><i data-lucide="arrow-left"></i> Back</a>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (function(){
+      const $ = (sel, root=document) => root.querySelector(sel);
+      const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+
+      const sampleCodes = new Map([
+        // code -> { status, amount }
+        ['ABCD-EF25-GH07-IJ15', {status: 'active', amount: 10}],
+        ['QWER-RT24-YU12-IO30', {status: 'redeemed', amount: 20}],
+        ['ZXCV-AS23-DF11-GH05', {status: 'blocked', amount: 0}],
+        ['AS12-DF25-KL12-ZZ01', {status: 'expired', amount: 5}],
+      ]);
+
+      let lastCheck = null;
+      function normalizeCode(v){
+        return (v||'').toUpperCase().replace(/\s+/g,'').trim();
+      }
+
+      function isFormatValid(code){
+        // 4-4-4-4 alphanumeric blocks
+        return /^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(code);
+      }
+
+      function parseDateFromCode(code){
+        // Per seed logic: XXXX-XXYY-XXMM-XXDD (take last two chars of blocks 2,3,4)
+        try {
+          const parts = code.split('-');
+          const yy = parts[1].slice(-2);
+          const mm = parts[2].slice(-2);
+          const dd = parts[3].slice(-2);
+          const year = 2000 + Number(yy);
+          const month = Number(mm) - 1; // 0-indexed
+          const day = Number(dd);
+          const d = new Date(year, month, day);
+          if (Number.isNaN(d.getTime())) return null;
+          // Guard invalid like 2025-02-31
+          if (d.getFullYear() !== year || d.getMonth() !== month || d.getDate() !== day) return null;
+          return d;
+        } catch (e) { return null; }
+      }
+
+      function computeStatusByDate(createdAt){
+        // Prototype rule: active for 90 days from creation, then expired
+        const now = new Date();
+        const days = 90;
+        const expiresAt = new Date(createdAt.getTime() + days*24*60*60*1000);
+        return now <= expiresAt ? 'active' : 'expired';
+      }
+
+      function renderResult({ ok, message, status, createdAt, amount }){
+        const host = $('#result');
+        const icon = ok ? 'check-circle-2' : 'x-circle';
+        const colorClass = ok ? 'success-text' : 'error-text';
+        const statusBadgeClass = status === 'active' ? 'badge-active' : status === 'redeemed' ? 'badge-redeemed' : status === 'blocked' ? 'badge-blocked' : 'badge-expired';
+        host.classList.add('show');
+        let amountHTML = '';
+        if (typeof amount === 'number') {
+          const amountText = amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+          amountHTML = `<div class="status-line"><i data-lucide="banknote"></i><span><span class="muted">Amount:</span> $${amountText}</span></div>`;
+        }
+        let redeemHTML = '';
+        if (ok && status === 'active') {
+          redeemHTML = `<div style="margin-top:10px"><button id="redeemBtn" type="button" class="btn accent" aria-label="Redeem Code"><i data-lucide="gift" aria-hidden="true"></i> Redeem</button></div>`;
+        }
+        host.innerHTML = `
+          <div class="title ${colorClass}"><i data-lucide="${icon}"></i> ${message}</div>
+          ${status ? `<div class="status-line"><span class="status-badge ${statusBadgeClass}">${status.toUpperCase()}</span></div>` : ''}
+          ${amountHTML}
+          ${redeemHTML}
+        `;
+        if (window.lucide) window.lucide.createIcons();
+      }
+
+      $('#verifyForm').addEventListener('submit', async (e)=>{
+        e.preventDefault();
+        const input = $('#promoCode');
+        const btn = $('#checkBtn');
+        const codeRaw = input.value;
+        const code = normalizeCode(codeRaw);
+        input.value = code; // reflect normalization
+        $('#result').classList.remove('show');
+        $('#result').innerHTML = '';
+
+        if (!isFormatValid(code)){
+          lastCheck = null;
+          renderResult({ ok:false, message:'Invalid code format. Please check and try again.' });
+          return;
+        }
+
+        // Simulate async check
+        btn.disabled = true; btn.classList.add('disabled');
+        await new Promise(r=>setTimeout(r, 500));
+
+        // Priority: explicit sample mapping; otherwise derive by date
+        const promoData = sampleCodes.get(code);
+        let status, amount;
+        if (promoData) {
+            status = promoData.status;
+            amount = promoData.amount;
+        }
+
+        const createdAt = parseDateFromCode(code);
+        if (!status && createdAt){
+          status = computeStatusByDate(createdAt);
+        }
+
+        if (!status){
+          lastCheck = null;
+          renderResult({ ok:false, message:'Code not found. Please verify and try again.' });
+        } else if (status === 'blocked'){
+          lastCheck = { code, status, amount, createdAt };
+          renderResult({ ok:true, message:'Code is valid but blocked.', status, createdAt, amount });
+        } else if (status === 'redeemed'){
+          lastCheck = { code, status, amount, createdAt };
+          renderResult({ ok:true, message:'Code is valid but already redeemed.', status, createdAt, amount });
+        } else if (status === 'expired'){
+          lastCheck = { code, status, amount, createdAt };
+          renderResult({ ok:true, message:'Code is valid but expired.', status, createdAt, amount });
+        } else {
+          lastCheck = { code, status, amount, createdAt };
+          renderResult({ ok:true, message:'Code is valid and active.', status, createdAt, amount });
+        }
+
+        btn.disabled = false; btn.classList.remove('disabled');
+      });
+
+      $('#result').addEventListener('click', async (e)=>{
+        const btn = e.target.closest('#redeemBtn');
+        if (!btn) return;
+        if (!lastCheck || lastCheck.status !== 'active') return;
+        btn.disabled = true; btn.classList.add('disabled');
+        await new Promise(r=>setTimeout(r, 600));
+        // Update state to redeemed (prototype)
+        lastCheck.status = 'redeemed';
+        if (lastCheck.code) {
+          sampleCodes.set(lastCheck.code, { status: 'redeemed', amount: lastCheck.amount || 0 });
+        }
+        renderResult({ ok:true, message:'Code redeemed successfully.', status:lastCheck.status, createdAt:lastCheck.createdAt, amount:lastCheck.amount });
+      });
+
+      if (window.lucide) window.lucide.createIcons();
+    })();
+  </script>
+</body>
+</html>

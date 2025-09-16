@@ -50,6 +50,22 @@
       name: 'Regular User',
       role: 'user',
       permissions: ['read']
+    },
+    {
+      id: 'beathe',
+      email: 'umwalib@mbelyco.com',
+      password: 'umwali@1',
+      name: 'Beathe Umwali',
+      role: 'manager',
+      permissions: ['read', 'write']
+    },
+    {
+      id: 'mrselyse',
+      email: 'misselyse@mbelyco.com',
+      password: 'misselyse@mbelyco.com',
+      name: 'Mrs. Elyse',
+      role: 'admin',
+      permissions: ['read', 'write', 'delete', 'admin']
     }
   ];
 
@@ -3317,9 +3333,10 @@ function saveSettings() {
   function initUserManagement() {
     // Sample users data
     const users = [
-      { id: 1, name: 'Elyse Mbonyumukunzi', email: 'elysembonye@gmail.com', role: 'super-admin', status: 'active', lastLogin: '2024-01-15', created: '2024-01-01' },
-      { id: 2, name: 'Sarah Manager', email: 'sarah@mbelyco.com', role: 'batch-manager', status: 'active', lastLogin: '2024-01-14', created: '2024-01-02' }
-    ];
+        { id: 1, name: 'Elyse Mbonyumukunzi', email: 'elysembonye@gmail.com', role: 'super-admin', status: 'active', lastLogin: '2024-01-15', created: '2024-01-01' },
+        { id: 2, name: 'Beathe Umwali', email: 'umwalib@mbelyco.com', role: 'batch-manager', status: 'active', lastLogin: '2024-01-14', created: '2024-01-02' },
+        { id: 3, name: 'Beathe Umwali', email: 'umwalib@mbelyco.com', role: 'batch-manager', status: 'active', lastLogin: '', created: '2024-07-22' }
+      ];
 
     let filteredUsers = [...users];
 
@@ -3525,7 +3542,7 @@ function saveSettings() {
     // Sample users data
     const users = [
       { id: 1, name: 'Elyse Mbonyumukunzi', email: 'elysembonye@gmail.com', role: 'super-admin', status: 'active' },
-      { id: 2, name: 'Sarah Manager', email: 'sarah@mbelyco.com', role: 'batch-manager', status: 'active' }
+      { id: 2, name: 'Beathe Umwali', email: 'umwalib@mbelyco.com', role: 'batch-manager', status: 'active' }
     ];
 
     // Permission categories
