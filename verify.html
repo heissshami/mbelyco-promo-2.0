@@ -53,6 +53,10 @@
           <h1 id="verifyHeading" class="panel-title">Verify Promo Code</h1>
           <p class="muted" style="margin:4px 0 0">Enter your code to check validity and status</p>
         </div>
+        <div style="margin-left: auto; text-align: right;">
+          <p id="user-name" class="muted" style="margin:0;font-weight:600"></p>
+          <a href="#" id="logoutBtn" class="muted" style="font-size: var(--fs-xs); text-decoration: none;">Logout</a>
+        </div>
       </div>
 
       <form id="verifyForm" novalidate>
@@ -81,6 +85,24 @@
       </div>
     </section>
   </main>
+
+  <script>
+    (function(){
+      const user = JSON.parse(sessionStorage.getItem('loggedInUser'));
+      if (user) {
+        document.getElementById('user-name').textContent = user.name;
+      }
+
+      const logoutBtn = document.getElementById('logoutBtn');
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          sessionStorage.removeItem('loggedInUser');
+          window.location.href = './login.html';
+        });
+      }
+    })();
+  </script>
 
   <script>
     (function(){
