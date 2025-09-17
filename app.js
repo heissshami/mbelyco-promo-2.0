@@ -719,7 +719,11 @@
     }
 
     function onGenerateSubmit(){
-        const name = el('gfName').value.trim();
+        const nameInput = el('gfName');
+        let name = nameInput.value.trim();
+        if (!name.startsWith('BATCH_')) {
+            name = 'BATCH_' + name;
+        }
         const total = Number(el('gfTotal').value);
         const amount = Number(el('gfAmount').value);
         const expiry = el('gfExpiry').value;
