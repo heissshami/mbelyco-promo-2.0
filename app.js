@@ -2554,60 +2554,51 @@
 
     // Redemptions
     function initRedemptions() {
-        // Sample redemptions data
-        const sampleRedemptions = [
-            {
-                id: 'TXN001',
-                code: 'MBL2024ABC123',
-                user: 'John Doe',
-                phone: '+250788123456',
-                amount: 5000,
-                status: 'completed',
-                date: new Date(Date.now() - 2 * 60 * 60 * 1000),
-                paymentMethod: 'MTN MoMo'
-            },
-            {
-                id: 'TXN002',
-                code: 'MBL2024DEF456',
-                user: 'Jane Smith',
-                phone: '+250788654321',
-                amount: 10000,
-                status: 'pending',
-                date: new Date(Date.now() - 1 * 60 * 60 * 1000),
-                paymentMethod: 'Airtel Money'
-            },
-            {
-                id: 'TXN003',
-                code: 'MBL2024GHI789',
-                user: 'Bob Johnson',
-                phone: '+250788987654',
-                amount: 2500,
-                status: 'failed',
-                date: new Date(Date.now() - 30 * 60 * 1000),
-                paymentMethod: 'MTN MoMo'
-            }
-        ];
+        renderRedemptions();
 
-        // Render redemptions table
-        function renderRedemptions(redemptions = sampleRedemptions) {
-            const tbody = document.getElementById('redemptionsTbody');
-            if (!tbody) return;
+        const statusTabs = document.getElementById('redemptionStatusTabs');
+        if (statusTabs) {
+            statusTabs.addEventListener('click', (e) => {
+                if (e.target.classList.contains('status-tab')) {
+                    statusTabs.querySelectorAll('.status-tab').forEach(tab => {
+                        tab.classList.remove('active');
+                        tab.setAttribute('aria-selected', 'false');
+                    });
 
-            tbody.innerHTML = redemptions.map(redemption => `
+                    e.target.classList.add('active');
+                    e.target.setAttribute('aria-selected', 'true');
+
+                    renderRedemptions();
+                }
+            });
+        }
+        setInterval(renderRedemptions, 5000);
+    }
+
+    function renderRedemptions() {
+        const status = document.querySelector('#redemptionStatusTabs .status-tab.active')?.dataset.status || '';
+        const redemptionCodes = state.codes.filter(c => c.status === 'redeemed' || c.status === 'used');
+        
+        const filtered = status ? redemptionCodes.filter(r => r.status === status) : redemptionCodes;
+
+        const tbody = document.getElementById('redemptionsTbody');
+        if (!tbody) return;
+
+        tbody.innerHTML = filtered.map(redemption => `
         <tr>
           <td><input type="checkbox" class="redemption-select" data-id="${redemption.id}" /></td>
           <td>${redemption.id}</td>
           <td><span class="code-pill">${redemption.code}</span></td>
           <td>
             <div>
-              <div class="font-medium">${redemption.user}</div>
-              <div class="text-sm text-muted">${redemption.phone}</div>
+              <div class="font-medium">${redemption.assigned_user || 'N/A'}</div>
+              <div class="text-sm text-muted">+2507...</div>
             </div>
           </td>
           <td>RWF ${redemption.amount.toLocaleString()}</td>
           <td><span class="status-badge status-${redemption.status}">${redemption.status}</span></td>
-          <td>${redemption.date.toLocaleDateString()}</td>
-          <td>${redemption.paymentMethod}</td>
+          <td>${new Date(redemption.created_at).toLocaleDateString()}</td>
+          <td>MTN MoMo</td>
           <td>
             <div class="menu-container">
               <button class="menu-trigger" data-id="${redemption.id}">
@@ -2629,36 +2620,29 @@
         </tr>
       `).join('');
 
-            window.lucide.createIcons();
-            fixSelectIcons();
-        }
-
-        // Initialize redemptions
-        renderRedemptions();
-
-        // Status tabs functionality
-        const statusTabs = document.getElementById('redemptionStatusTabs');
-        if (statusTabs) {
-            statusTabs.addEventListener('click', (e) => {
-                if (e.target.classList.contains('status-tab')) {
-                    // Remove active class from all tabs
-                    statusTabs.querySelectorAll('.status-tab').forEach(tab => {
-                        tab.classList.remove('active');
-                        tab.setAttribute('aria-selected', 'false');
-                    });
-
-                    // Add active class to clicked tab
-                    e.target.classList.add('active');
-                    e.target.setAttribute('aria-selected', 'true');
-
-                    // Filter redemptions based on status
-                    const status = e.target.dataset.status;
-                    const filtered = status ? sampleRedemptions.filter(r => r.status === status) : sampleRedemptions;
-                    renderRedemptions(filtered);
-                }
-            });
-        }
+        updateRedemptionCounts(redemptionCodes);
+        window.lucide.createIcons();
+        fixSelectIcons();
     }
+
+    function updateRedemptionCounts(redemptionCodes) {
+        const totalRedemptions = redemptionCodes.length;
+        const pendingRedemptions = redemptionCodes.filter(r => r.status === 'pending').length;
+        const failedRedemptions = redemptionCodes.filter(r => r.status === 'failed').length;
+        const completedRedemptions = redemptionCodes.filter(r => r.status === 'completed' || r.status === 'used' || r.status === 'redeemed').length;
+
+        el('totalRedemptions').textContent = totalRedemptions.toLocaleString();
+        el('pendingRedemptions').textContent = pendingRedemptions.toLocaleString();
+        el('failedRedemptions').textContent = failedRedemptions.toLocaleString();
+        
+        el('redemptionCountAll').textContent = totalRedemptions.toLocaleString();
+        el('redemptionCountCompleted').textContent = completedRedemptions.toLocaleString();
+        el('redemptionCountPending').textContent = pendingRedemptions.toLocaleString();
+        el('redemptionCountFailed').textContent = failedRedemptions.toLocaleString();
+
+        el('kpiRedemptions').textContent = totalRedemptions.toLocaleString();
+    }
+
 
     // Payments
     function initPayments() {
@@ -3144,7 +3128,6 @@
         }
 
         // Start real-time updates
-        setInterval(updateMetrics, 15000); // Update metrics every 15 seconds
         setInterval(updateSecurityMetrics, 25000); // Update security metrics every 25 seconds
         setInterval(updatePaymentMethods, 30000); // Update payment methods every 30 seconds
     }
