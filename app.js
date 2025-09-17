@@ -71,7 +71,7 @@
 
     // Seed data according to PRD patterns
     function randomCodePart(len){
-        const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        const CHARS = 'ACEFGHJKLMNPRSTUWXYZ0123456789';
         let out = '';
         for(let i=0;i<len;i++) out += CHARS[Math.floor(Math.random()*CHARS.length)];
         return out;
@@ -269,43 +269,31 @@
         }
         body.innerHTML='';
 
-        const params = new URLSearchParams();
-        params.set('page', String(state.codesPage || 1));
-        params.set('pageSize', String(CODES_PAGE_SIZE));
-        if (search) params.set('search', search);
-        if (statusFilter) params.set('status', statusFilter);
+        const filteredCodes = state.codes.filter(c => {
+            const matchesSearch = !search || c.code.toLowerCase().includes(search.toLowerCase());
+            const matchesStatus = !statusFilter || c.status === statusFilter;
+            return matchesSearch && matchesStatus;
+        });
 
-        fetch(`/api/promo-codes?${params.toString()}`)
-            .then(r=>r.json())
-            .then(data=>{
-                const items = (data && data.items) ? data.items : [];
-                state.codes = items.map(c=>({
-                    id: c.id,
-                    code: c.code,
-                    batch_id: c.batch_id,
-                    batch_name: c.batch_name,
-                    amount: Number(c.amount),
-                    currency: c.currency || 'RWF',
-                    status: c.status,
-                    created_at: c.created_at ? new Date(c.created_at) : new Date()
-                }));
-                state.codeCounts = data && data.counts ? data.counts : null;
+        const totalItems = filteredCodes.length;
+        const totalPages = Math.max(1, Math.ceil(totalItems / CODES_PAGE_SIZE));
+        if(state.codesPage > totalPages) state.codesPage = totalPages;
+        if(state.codesPage < 1) state.codesPage = 1;
 
-                const totalItems = (state.codeCounts && typeof state.codeCounts.total === 'number') ? state.codeCounts.total : state.codes.length;
-                const totalPages = Math.max(1, Math.ceil(totalItems / CODES_PAGE_SIZE));
-                if(state.codesPage > totalPages) state.codesPage = totalPages;
-                if(state.codesPage < 1) state.codesPage = 1;
+        const startIndex = (state.codesPage - 1) * CODES_PAGE_SIZE;
+        const endIndex = startIndex + CODES_PAGE_SIZE;
+        const codesToRender = filteredCodes.slice(startIndex, endIndex);
 
-                // Debug logging
-                console.log('renderCodes fetch debug:', {
-                    totalItems, totalPages, currentPage: state.codesPage, pageItems: state.codes.length
-                });
+        // Debug logging
+        console.log('renderCodes debug:', {
+            totalItems, totalPages, currentPage: state.codesPage, pageItems: codesToRender.length
+        });
 
-                state.codes.forEach(c=>{
-                    const tr = document.createElement('tr');
-                    const actionLabel = c.status === 'blocked' ? 'Enable' : 'Block';
-                    const actionKey = c.status === 'blocked' ? 'enable' : 'block';
-                    tr.innerHTML = `
+        codesToRender.forEach(c=>{
+            const tr = document.createElement('tr');
+            const actionLabel = c.status === 'blocked' ? 'Enable' : 'Block';
+            const actionKey = c.status === 'blocked' ? 'enable' : 'block';
+            tr.innerHTML = `
             <td><input type="checkbox" data-id="${c.id}" /></td>
             <td>
               <div class="code-pill">
@@ -327,38 +315,28 @@
                 </div>
               </div>
             </td>`;
-                    body.appendChild(tr);
-                });
+            body.appendChild(tr);
+        });
 
-                if(window.lucide) window.lucide.createIcons();
-                fixSelectIcons();
-                // update counts and items
-                updatePromoCounts();
-                const pcItems = el('pcItemsCount'); if(pcItems) pcItems.textContent = Number(totalItems).toLocaleString();
-                const pcPageIdx = el('pcPageIndex'); if(pcPageIdx) pcPageIdx.textContent = String(state.codesPage);
-                const pcPageTotal = el('pcPageTotal'); if(pcPageTotal) pcPageTotal.textContent = String(totalPages);
-                const prevBtn = el('pcPagePrev'); if(prevBtn) prevBtn.disabled = state.codesPage <= 1;
-                const nextBtn = el('pcPageNext'); if(nextBtn) nextBtn.disabled = state.codesPage >= totalPages;
-            })
-            .catch(err=>{
-                console.error('Failed to load promo codes', err);
-            });
+        if(window.lucide) window.lucide.createIcons();
+        fixSelectIcons();
+        // update counts and items
+        updatePromoCounts();
+        const pcItems = el('pcItemsCount'); if(pcItems) pcItems.textContent = Number(totalItems).toLocaleString();
+        const pcPageIdx = el('pcPageIndex'); if(pcPageIdx) pcPageIdx.textContent = String(state.codesPage);
+        const pcPageTotal = el('pcPageTotal'); if(pcPageTotal) pcPageTotal.textContent = String(totalPages);
+        const prevBtn = el('pcPagePrev'); if(prevBtn) prevBtn.disabled = state.codesPage <= 1;
+        const nextBtn = el('pcPageNext'); if(nextBtn) nextBtn.disabled = state.codesPage >= totalPages;
     }
 
     function updatePromoCounts(){
-        if (state.codeCounts) {
-            const map = [
-                ['pcCountAll','total'],['pcCountActive','active'],['pcCountUsed','used'],['pcCountRedeemed','redeemed'],['pcCountExpired','expired'],['pcCountBlocked','blocked']
-            ];
-            map.forEach(([id,key])=>{ const n = el(id); if(n) n.textContent = Number(state.codeCounts[key] || 0).toLocaleString(); });
-            return;
-        }
+        // If using local state.codes, recalculate counts
         const counts = { all: state.codes.length, active:0, used:0, redeemed:0, expired:0, blocked:0 };
         state.codes.forEach(c=>{ if(counts[c.status]!==undefined) counts[c.status]++; });
-        const fallbackMap = [
+        const map = [
             ['pcCountAll','all'],['pcCountActive','active'],['pcCountUsed','used'],['pcCountRedeemed','redeemed'],['pcCountExpired','expired'],['pcCountBlocked','blocked']
         ];
-        fallbackMap.forEach(([id,key])=>{ const n = el(id); if(n) n.textContent = counts[key].toLocaleString(); });
+        map.forEach(([id,key])=>{ const n = el(id); if(n) n.textContent = counts[key].toLocaleString(); });
     }
 
     // Monitoring removed
