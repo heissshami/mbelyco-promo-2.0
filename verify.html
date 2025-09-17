@@ -76,6 +76,14 @@
         <div id="codeHelp" class="helper"></div>
       </form>
 
+      <div id="value-wrapper" style="display: none; margin-top: 10px;">
+        <label for="promoValue" class="muted" style="display:block;margin-bottom:6px">Value</label>
+        <div class="input-wrapper" style="position:relative">
+          <input id="promoValue" name="promoValue" type="text" class="form-input" style="width:100%;padding-left:40px" readonly />
+          <i data-lucide="gem" class="input-icon" aria-hidden="true"></i>
+        </div>
+      </div>
+
       <div id="result" class="result" role="status" aria-live="polite"></div>
 
 
@@ -121,10 +129,10 @@
 
       const sampleCodes = new Map([
         // code -> { status, amount }
-        ['ABCD-EF25-GH07-IJ15', {status: 'active', amount: 10}],
-        ['QWER-RT24-YU12-IO30', {status: 'redeemed', amount: 20}],
+        ['ABCD-EF25-GH07-IJ15', {status: 'active', amount: 500}],
+        ['QWER-RT24-YU12-IO30', {status: 'redeemed', amount: 1000}],
         ['ZXCV-AS23-DF11-GH05', {status: 'blocked', amount: 0}],
-        ['AS12-DF25-KL12-ZZ01', {status: 'expired', amount: 5}],
+        ['AS12-DF25-KL12-ZZ01', {status: 'expired', amount: 250}],
       ]);
 
       let lastCheck = null;
@@ -169,19 +177,29 @@
         const colorClass = ok ? 'success-text' : 'error-text';
         const statusBadgeClass = status === 'active' ? 'badge-active' : status === 'redeemed' ? 'badge-redeemed' : status === 'blocked' ? 'badge-blocked' : 'badge-expired';
         host.classList.add('show');
-        let amountHTML = '';
-        if (typeof amount === 'number') {
-          const amountText = amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-          amountHTML = `<div class="status-line"><i data-lucide="banknote"></i><span><span class="muted">Amount:</span> $${amountText}</span></div>`;
-        }
+        
         let actionButtonsHTML = '';
         if (ok && status === 'active') {
-          actionButtonsHTML = `<div style="margin-top:10px; display: flex; gap: 10px;"><button id="redeemBtn" type="button" class="btn accent" aria-label="Redeem Code"><i data-lucide="gift" aria-hidden="true"></i> Redeem</button><button id="checkOtherBtn" type="button" class="btn secondary" aria-label="Check another code"><i data-lucide="search" aria-hidden="true"></i> Check Other</button></div>`;
+          actionButtonsHTML = `<div id="phone-number-wrapper" style="margin-top: 10px; display: none;">
+              <label for="phoneNumber" class="muted" style="display:block;margin-bottom:6px">Phone Number</label>
+              <div class="input-wrapper" style="position:relative">
+                <input id="phoneNumber" name="phoneNumber" type="tel" placeholder="Enter your phone number" class="form-input" style="width:100%;padding-left:40px" autocomplete="off" required />
+                <i data-lucide="phone" class="input-icon" aria-hidden="true"></i>
+              </div>
+            </div>
+            <div style="margin-top:10px; display: flex; gap: 10px;">
+              <button id="redeemBtn" type="button" class="btn accent" aria-label="Redeem Code" disabled><i data-lucide="gift" aria-hidden="true"></i> Redeem</button>
+              <button id="checkOtherBtn" type="button" class="btn secondary" aria-label="Check another code"><i data-lucide="search" aria-hidden="true"></i> Check Other</button>
+            </div>`;
+        }
+        if (ok && status === 'redeemed') {
+          actionButtonsHTML = `<div style="margin-top:10px; display: flex; gap: 10px;">
+              <button id="checkOtherBtn" type="button" class="btn secondary" aria-label="Check another code"><i data-lucide="search" aria-hidden="true"></i> Check Other</button>
+            </div>`;
         }
         host.innerHTML = `
           <div class="title ${colorClass}"><i data-lucide="${icon}"></i> ${message}</div>
           ${status ? `<div class="status-line"><span class="status-badge ${statusBadgeClass}">${status.toUpperCase()}</span></div>` : ''}
-          ${amountHTML}
           ${actionButtonsHTML}
         `;
         if (window.lucide) window.lucide.createIcons();
@@ -196,6 +214,8 @@
         input.value = code; // reflect normalization
         $('#result').classList.remove('show');
         $('#result').innerHTML = '';
+        $('#value-wrapper').style.display = 'none';
+        $('#promoValue').value = '';
 
         if (!isFormatValid(code)){
           lastCheck = null;
@@ -234,7 +254,24 @@
           renderResult({ ok:true, message:'Code is valid but expired.', status, createdAt, amount });
         } else {
           lastCheck = { code, status, amount, createdAt };
-          renderResult({ ok:true, message:'Code is valid and active.', status, createdAt, amount });
+          renderResult({ ok:true, message:'', status, createdAt, amount });
+          const phoneWrapper = $('#phone-number-wrapper');
+          if (phoneWrapper) {
+            phoneWrapper.style.display = 'block';
+            const phoneInput = $('#phoneNumber');
+            const redeemBtn = $('#redeemBtn');
+            if (phoneInput && redeemBtn) {
+              phoneInput.addEventListener('input', () => {
+                redeemBtn.disabled = !phoneInput.value.trim();
+              });
+            }
+          }
+          const valueWrapper = $('#value-wrapper');
+          const valueInput = $('#promoValue');
+          if (valueWrapper && valueInput && typeof amount === 'number') {
+            valueInput.value = `${amount.toLocaleString()} Rwf`;
+            valueWrapper.style.display = 'block';
+          }
         }
 
         btn.disabled = false; btn.classList.remove('disabled');
@@ -246,12 +283,18 @@
 
         if (redeemBtn) {
             if (!lastCheck || lastCheck.status !== 'active') return;
+            const phoneInput = $('#phoneNumber');
+            if (!phoneInput || !phoneInput.value.trim()) {
+              // Optionally, show an error message to the user
+              return;
+            }
             redeemBtn.disabled = true; redeemBtn.classList.add('disabled');
             await new Promise(r=>setTimeout(r, 600));
             // Update state to redeemed (prototype)
             lastCheck.status = 'redeemed';
+            lastCheck.phoneNumber = phoneInput.value.trim();
             if (lastCheck.code) {
-              sampleCodes.set(lastCheck.code, { status: 'redeemed', amount: lastCheck.amount || 0 });
+              sampleCodes.set(lastCheck.code, { status: 'redeemed', amount: lastCheck.amount || 0, phoneNumber: lastCheck.phoneNumber });
             }
             renderResult({ ok:true, message:'Code redeemed successfully.', status:lastCheck.status, createdAt:lastCheck.createdAt, amount:lastCheck.amount });
         }
@@ -261,6 +304,8 @@
             $('#result').classList.remove('show');
             $('#result').innerHTML = '';
             $('#promoCode').focus();
+            $('#value-wrapper').style.display = 'none';
+            $('#promoValue').value = '';
         }
       });
 
