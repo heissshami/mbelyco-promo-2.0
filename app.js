@@ -3388,9 +3388,9 @@
     function initUserManagement() {
         // Sample users data
         const users = [
-            { id: 1, name: 'Elyse Mbonyumukunzi', email: 'elysembonye@gmail.com', role: 'super-admin', status: 'active', lastLogin: '2024-01-15', created: '2024-01-01' },
-            { id: 2, name: 'Beathe Umwali', email: 'umwalib@mbelyco.com', role: 'batch-manager', status: 'active', lastLogin: '2024-01-14', created: '2024-01-02' },
-            { id: 3, name: 'Beathe Umwali', email: 'umwalib@mbelyco.com', role: 'batch-manager', status: 'active', lastLogin: '', created: '2024-07-22' }
+            { id: 1, name: 'Elyse Mbonyumukunzi', email: 'elysembonye@gmail.com', role: 'super-admin', status: 'active', lastLogin: '', created: '2025-09-09' },
+            { id: 2, name: 'Mrs. Elyse', email: 'misselyse@mbelyco.com', role: 'super-admin', status: 'active', lastLogin: '', created: '2025-09-15' },
+            { id: 3, name: 'Beathe Umwali', email: 'umwalib@mbelyco.com', role: 'batch-manager', status: 'active', lastLogin: '', created: '2025-09-16' }
         ];
 
         let filteredUsers = [...users];

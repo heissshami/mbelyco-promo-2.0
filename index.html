@@ -133,7 +133,7 @@
             </div>
             <div class="metric-content">
               <div class="metric-value" id="kpiActiveUsers">0</div>
-              <div class="metric-label">Active Users</div>
+              <div class="metric-label">Customers</div>
               <div class="metric-change positive">+5.7% from last month</div>
             </div>
           </div>
@@ -173,13 +173,13 @@
                 <div class="action-desc">Download reports</div>
               </div>
             </button>
-            <button class="action-card" data-action="analytics">
+            <button class="action-card" onclick="window.location.href='./verify.html'">
               <div class="action-icon">
-                <i data-lucide="bar-chart-3"></i>
+                <i data-lucide="check-shield"></i>
               </div>
               <div class="action-content">
-                <div class="action-title">View Analytics</div>
-                <div class="action-desc">Detailed insights</div>
+                <div class="action-title">Verify Code</div>
+                <div class="action-desc">Check promo code validity</div>
               </div>
             </button>
           </div>
@@ -619,9 +619,9 @@
                  <i data-lucide="shield-alert"></i>
                </div>
                <div class="metric-content">
-                 <div class="metric-value" id="totalFraudReports">12</div>
+                 <div class="metric-value" id="totalFraudReports">0</div>
                  <div class="metric-label">Total Reports</div>
-                 <div class="metric-change negative">+2 this week</div>
+                 <div class="metric-change negative">+0 this week</div>
                </div>
              </div>
              <div class="metric-card">
@@ -629,7 +629,7 @@
                  <i data-lucide="clock"></i>
                </div>
                <div class="metric-content">
-                 <div class="metric-value" id="pendingInvestigations">3</div>
+                 <div class="metric-value" id="pendingInvestigations">0</div>
                  <div class="metric-label">Pending</div>
                  <div class="metric-change neutral">Under investigation</div>
                </div>
@@ -639,9 +639,9 @@
                  <i data-lucide="check-circle"></i>
                </div>
                <div class="metric-content">
-                 <div class="metric-value" id="resolvedFrauds">8</div>
+                 <div class="metric-value" id="resolvedFrauds">0</div>
                  <div class="metric-label">Resolved</div>
-                 <div class="metric-change positive">+1 this week</div>
+                 <div class="metric-change positive">+0 this week</div>
                </div>
              </div>
              <div class="metric-card">
@@ -649,7 +649,7 @@
                  <i data-lucide="trending-down"></i>
                </div>
                <div class="metric-content">
-                 <div class="metric-value" id="fraudRate">0.4</div>
+                 <div class="metric-value" id="fraudRate">0</div>
                  <div class="metric-label">Fraud Rate</div>
                  <div class="metric-change positive">-0.1% from last month</div>
                </div>
@@ -660,10 +660,10 @@
          <!-- Fraud Controls -->
          <div class="fraud-controls">
            <div class="status-tabs" id="fraudStatusTabs" role="tablist" aria-label="Fraud status filter">
-             <button class="status-tab active" data-status="" role="tab" aria-selected="true">All (<span id="fraudCountAll">12</span>)</button>
-             <button class="status-tab" data-status="pending" role="tab" aria-selected="false">Pending (<span id="fraudCountPending">3</span>)</button>
-             <button class="status-tab" data-status="investigating" role="tab" aria-selected="false">Investigating (<span id="fraudCountInvestigating">1</span>)</button>
-             <button class="status-tab" data-status="resolved" role="tab" aria-selected="false">Resolved (<span id="fraudCountResolved">8</span>)</button>
+             <button class="status-tab active" data-status="" role="tab" aria-selected="true">All (<span id="fraudCountAll">0</span>)</button>
+             <button class="status-tab" data-status="pending" role="tab" aria-selected="false">Pending (<span id="fraudCountPending">0</span>)</button>
+             <button class="status-tab" data-status="investigating" role="tab" aria-selected="false">Investigating (<span id="fraudCountInvestigating">0</span>)</button>
+             <button class="status-tab" data-status="resolved" role="tab" aria-selected="false">Resolved (<span id="fraudCountResolved">0</span>)</button>
            </div>
            <div class="fraud-bar">
              <div class="left">
@@ -684,10 +684,10 @@
                <button class="btn accent" id="fraudApplyBulk">Apply</button>
              </div>
              <div class="right">
-               <span class="muted"><span id="fraudItemsCount">12</span> reports</span>
+               <span class="muted"><span id="fraudItemsCount">0</span> reports</span>
                <button class="btn ghost" id="fraudPagePrev" aria-label="Previous page">‹</button>
-               <span class="muted"><span id="fraudPageIndex">1</span></span>
-               <span class="muted">of <span id="fraudPageTotal">1</span></span>
+               <span class="muted"><span id="fraudPageIndex">0</span></span>
+               <span class="muted">of <span id="fraudPageTotal">0</span></span>
                <button class="btn ghost" id="fraudPageNext" aria-label="Next page">›</button>
              </div>
            </div>
@@ -893,8 +893,8 @@
                  <i data-lucide="users"></i>
                </div>
                <div class="metric-content">
-                 <div class="metric-value" id="activeUsers">1,234</div>
-                 <div class="metric-label">Active Users</div>
+                 <div class="metric-value" id="activeUsers">0</div>
+                 <div class="metric-label">Customers</div>
                  <div class="metric-change positive">+5.7% from last month</div>
                </div>
              </div>
@@ -1023,15 +1023,6 @@
               </div>
               <div class="stat-card">
                 <div class="stat-icon">
-                  <i data-lucide="user-check"></i>
-                </div>
-                <div class="stat-content">
-                  <div class="stat-value" id="activeUsers">5</div>
-                  <div class="stat-label">Active Users</div>
-                </div>
-              </div>
-              <div class="stat-card">
-                <div class="stat-icon">
                   <i data-lucide="shield"></i>
                 </div>
                 <div class="stat-content">
@@ -1044,8 +1035,17 @@
                   <i data-lucide="clock"></i>
                 </div>
                 <div class="stat-content">
-                  <div class="stat-value" id="recentLogins">0</div>
-                  <div class="stat-label">Recent Logins</div>
+                  <div class="stat-value" id="otherusers">1</div>
+                  <div class="stat-label">Other Users</div>
+                </div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-icon">
+                  <i data-lucide="user-check"></i>
+                </div>
+                <div class="stat-content">
+                  <div class="stat-value" id="activeUsers">0</div>
+                  <div class="stat-label">Customers</div>
                 </div>
               </div>
             </div>
