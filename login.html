@@ -562,31 +562,6 @@
     // Initialize Lucide icons
     lucide.createIcons();
 
-    // Demo users data
-    const demoUsers = [
-      {
-        email: 'elysembonye@gmail.com',
-        password: 'admin123',
-        name: 'Elyse Mbonyumukunzi',
-        role: 'admin',
-        permissions: ['create', 'read', 'update', 'delete', 'download', 'import', 'export']
-      },
-      {
-        email: 'misselyse@mbelyco.com',
-        password: 'miss123@mbelyco.com',
-        name: 'Mrs. Elyse',
-        role: 'admin',
-        permissions: ['create', 'read', 'update', 'delete', 'download', 'import', 'export']
-      },
-      {
-        email: 'umwalib@mbelyco.com',
-        password: 'umwali@1',
-        name: 'Beathe Umwali',
-        role: 'manager',
-        permissions: ['create', 'read', 'update', 'download', 'import']
-      }
-    ];
-
     // DOM elements
     const loginForm = document.getElementById('loginForm');
     const emailInput = document.getElementById('email');
@@ -607,89 +582,84 @@
       lucide.createIcons();
     });
 
-
-    // Form submission
+    // Form submission handler
     loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      
       const email = emailInput.value.trim();
-      const password = passwordInput.value;
-      const remember = rememberCheckbox.checked;
+      const password = passwordInput.value.trim();
 
+      // Basic validation
       if (!email || !password) {
-        showError('Please fill in all fields');
+        showToast('error', 'Please enter both email and password.');
         return;
       }
 
-      // Show loading state
-      loginBtn.classList.add('loading');
-      loginBtn.innerHTML = '<span>Signing in...</span>';
+      // Disable button and show loading state
+      loginBtn.disabled = true;
+      loginBtn.innerHTML = `
+        <div class="loader"></div>
+        <span>Signing In...</span>
+      `;
 
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      try {
+        const response = await fetch('/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email, password }),
+        });
 
-      // Find user
-      const user = demoUsers.find(u => u.email === email && u.password === password);
-      
-      if (user) {
-        // Store user session
-        sessionStorage.setItem('loggedInUser', JSON.stringify(user));
+        if (response.ok) {
+          const { user } = await response.json();
+          
+          // Store user data in sessionStorage
+          sessionStorage.setItem('loggedInUser', JSON.stringify(user));
 
-        // Show success and redirect
-        showSuccess(`Welcome back, ${user.name}!`);
-        
-        setTimeout(() => {
-          if (user.role === 'manager') {
-            window.location.href = 'verify.html';
-          } else {
-            window.location.href = 'index.html';
-          }
-        }, 1000);
-      } else {
-        showError('Invalid email or password');
-        loginBtn.classList.remove('loading');
-        loginBtn.innerHTML = '<span>Sign In</span><i data-lucide="arrow-right"></i>';
-        lucide.createIcons();
+          showToast('success', 'Login successful! Redirecting...');
+
+          // Redirect based on role
+          setTimeout(() => {
+            if (user.role === 'manager') {
+              window.location.href = 'verify.html';
+            } else {
+              window.location.href = 'index.html';
+            }
+          }, 1500);
+        } else {
+          const { message } = await response.json();
+          showToast('error', message || 'Invalid email or password');
+          resetLoginButton();
+        }
+      } catch (error) {
+        console.error('Login error:', error);
+        showToast('error', 'An unexpected error occurred. Please try again.');
+        resetLoginButton();
       }
     });
 
-    // Error/Success messages
-    function showError(message) {
+    function resetLoginButton() {
+      loginBtn.disabled = false;
+      loginBtn.innerHTML = `
+        <span>Sign In</span>
+        <i data-lucide="arrow-right"></i>
+      `;
+      lucide.createIcons();
+    }
+
+    // Toast notification functions
+    function showToast(type, message) {
       // Remove existing messages
       const existing = document.querySelector('.message');
       if (existing) existing.remove();
 
       const messageEl = document.createElement('div');
-      messageEl.className = 'message error';
+      messageEl.className = 'message ' + type;
       messageEl.style.cssText = `
         position: fixed;
         top: 20px;
         right: 20px;
         background: #ef4444;
-        color: white;
-        padding: 12px 20px;
-        border-radius: 8px;
-        font-weight: 500;
-        z-index: 1000;
-        animation: slideIn 0.3s ease;
-      `;
-      messageEl.textContent = message;
-      document.body.appendChild(messageEl);
-
-      setTimeout(() => {
-        messageEl.style.animation = 'slideOut 0.3s ease';
-        setTimeout(() => messageEl.remove(), 300);
-      }, 3000);
-    }
-
-    function showSuccess(message) {
-      const messageEl = document.createElement('div');
-      messageEl.className = 'message success';
-      messageEl.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: var(--color-primary);
         color: white;
         padding: 12px 20px;
         border-radius: 8px;
