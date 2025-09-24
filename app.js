@@ -1,4 +1,3 @@
-/* Seeded demo data and interactions for the MBELYCO Promo v2.0 HTML prototype */
 (function(){
     const state = {
         theme: 'dark',
@@ -25,50 +24,6 @@
         return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
     }
 
-    // Demo users for authentication
-    const demoUsers = [
-        {
-            id: 'admin',
-            email: 'elysembonye@gmail.com',
-            password: 'admin123',
-            name: 'Elyse Mbonyumukunzi',
-            role: 'admin',
-            permissions: ['read', 'write', 'delete', 'admin']
-        },
-        {
-            id: 'manager',
-            email: 'manager@mbelyco.com',
-            password: 'manager123',
-            name: 'Manager User',
-            role: 'manager',
-            permissions: ['read', 'write']
-        },
-        {
-            id: 'user',
-            email: 'user@mbelyco.com',
-            password: 'user123',
-            name: 'Regular User',
-            role: 'user',
-            permissions: ['read']
-        },
-        {
-            id: 'beathe',
-            email: 'umwalib@mbelyco.com',
-            password: 'umwali@1',
-            name: 'Beathe Umwali',
-            role: 'manager',
-            permissions: ['read', 'write']
-        },
-        {
-            id: 'mrselyse',
-            email: 'misselyse@mbelyco.com',
-            password: 'misselyse@mbelyco.com',
-            name: 'Mrs. Elyse',
-            role: 'admin',
-            permissions: ['read', 'write', 'delete', 'admin']
-        }
-    ];
-
     // Seed data according to PRD patterns
     function randomCodePart(len){
         const CHARS = 'ACEFGHJKLMNPRSTUWXYZ0123456789';
@@ -81,51 +36,6 @@
         const MM = String(createdAt.getMonth()+1).padStart(2,'0');
         const DD = String(createdAt.getDate()).padStart(2,'0');
         return `${randomCodePart(4)}-${randomCodePart(2)}${YY}-${randomCodePart(2)}${MM}-${randomCodePart(2)}${DD}`;
-    }
-
-    function seed(){
-        const today = new Date();
-        state.batches = [
-            { id: 'b1', name: 'SUMMER_PROMO', description: 'Summer 2025 Promo', total_codes: 1200, amount_per_code: 500, currency: 'RWF', expiration_date: new Date(today.getFullYear(), today.getMonth()+2, 1), assigned_user: 'Alice', status: 'active', created_at: today },
-            { id: 'b2', name: 'LAUNCH_WAVE_A', description: 'Product Launch Wave A', total_codes: 800, amount_per_code: 1000, currency: 'RWF', expiration_date: new Date(today.getFullYear(), today.getMonth()+1, 15), assigned_user: 'Bob', status: 'active', created_at: today },
-            { id: 'b3', name: 'Q4_RETENTION', description: 'Retention push', total_codes: 600, amount_per_code: 700, currency: 'RWF', expiration_date: new Date(today.getFullYear(), today.getMonth()-1, 28), assigned_user: 'Carol', status: 'expired', created_at: today },
-            { id: 'b4', name: 'PARTNER_CAMPAIGN', description: 'Partner co-brand', total_codes: 300, amount_per_code: 1500, currency: 'RWF', expiration_date: new Date(today.getFullYear(), today.getMonth()+3, 5), assigned_user: 'Diana', status: 'active', created_at: today }
-        ];
-
-        const statuses = ['active','used','redeemed','expired','blocked'];
-        state.codes = [];
-        state.batches.forEach(b => {
-            // Create codes to match the batch total_codes count
-            for(let i=0;i<b.total_codes;i++){
-                const created = new Date(today.getTime() - Math.floor(Math.random()*86400000*30));
-                const st = statuses[Math.floor(Math.random()*statuses.length)];
-                state.codes.push({
-                    id: `${b.id}-${i}`,
-                    code: generateCode(created),
-                    batch_id: b.id,
-                    batch_name: b.name,
-                    amount: b.amount_per_code,
-                    currency: b.currency,
-                    status: st,
-                    created_at: created
-                });
-            }
-        });
-
-        state.activity = [
-            { icon:'✅', title:'Redemption completed', time:'Just now', desc:'RWF 500 sent to 2507***12' },
-            { icon:'📦', title:'Batch generated', time:'2m ago', desc:'1,200 codes created for SUMMER_PROMO' },
-            { icon:'⚠️', title:'Retry scheduled', time:'14m ago', desc:'MoMo disbursement retry in 5 min' },
-            { icon:'🔐', title:'Role updated', time:'1h ago', desc:'Alice granted Campaign Manager' }
-        ];
-
-        // Debug logging
-        console.log('Seed function completed:', {
-            batches: state.batches.length,
-            codes: state.codes.length,
-            totalCodesFromBatches: state.batches.reduce((sum, b) => sum + b.total_codes, 0)
-        });
-
     }
 
     // Rendering
@@ -146,22 +56,6 @@
         el('kpiRedemptions').textContent = redemptions.toLocaleString();
         el('kpiActiveBatches').textContent = String(activeBatches);
         el('kpiDisbursed').textContent = disbursed.toLocaleString();
-    }
-
-    function renderActivity(){
-        const host = el('activityFeed'); host.innerHTML='';
-        state.activity.forEach(a=>{
-            const li = document.createElement('li');
-            const icon = mapActivityIcon(a.icon);
-            li.innerHTML = `<div class="activity-icon"><i data-lucide="${icon}"></i></div>
-        <div class="activity-meta">
-          <div class="activity-title">${a.title}</div>
-          <div class="activity-time">${a.time}</div>
-          <div class="activity-desc">${a.desc}</div>
-        </div>`;
-            host.appendChild(li);
-        });
-        if(window.lucide) window.lucide.createIcons();
     }
 
     function badgeStatus(st){

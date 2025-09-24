@@ -1,31 +1,20 @@
 // API Integration for Generate Codes functionality
-// This file overrides the existing event handlers to call serverless functions
+// This file defines the API-based functions for code generation
 
-document.addEventListener('DOMContentLoaded', function() {
-    // Wait for app.js to initialize, then override the functions
-    setTimeout(() => {
-        overrideGenerateFunctions();
-    }, 100);
-});
+// Define the functions directly instead of overriding
+console.log('Defining Generate Codes API functions');
 
-function overrideGenerateFunctions() {
-    console.log('Overriding Generate Codes functions with API calls');
+// Define the openGenerateForm function
+window.openGenerateForm = function() {
+    // Open the generate form modal
+    if (window.openModal) {
+        window.openModal('generateFormModal');
+    }
+    // Setup the form
+    setupGenerateFormAPI();
+};
     
-    // Store original functions for reference
-    const originalOpenGenerateForm = window.openGenerateForm;
-    const originalSetupGenerateForm = window.setupGenerateForm;
-    const originalOnGenerateSubmit = window.onGenerateSubmit;
-    const originalStartGenerating = window.startGenerating;
-    
-    // Override openGenerateForm to ensure our setup runs
-    window.openGenerateForm = function() {
-        if (originalOpenGenerateForm) {
-            originalOpenGenerateForm();
-        }
-        setupGenerateFormAPI();
-    };
-    
-    // Override the form submission handler
+    // Define the form submission handler
     window.onGenerateSubmit = async function(event) {
         event.preventDefault();
         
@@ -169,7 +158,6 @@ function overrideGenerateFunctions() {
         const closeBtn = document.getElementById('generateFormClose');
         
         if (form) {
-            form.removeEventListener('submit', originalOnGenerateSubmit);
             form.addEventListener('submit', window.onGenerateSubmit);
         }
         
@@ -181,7 +169,7 @@ function overrideGenerateFunctions() {
             };
         }
         
-        // Keep original cancel/close behavior
+        // Set up cancel/close behavior
         if (cancelBtn && window.closeModal) {
             cancelBtn.onclick = function() { window.closeModal('generateFormModal'); };
         }
@@ -209,5 +197,7 @@ function overrideGenerateFunctions() {
         }
     }
     
-    console.log('Generate Codes functions overridden successfully');
-}
+    // Initialize when DOM is ready
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('API Generate Codes functions initialized');
+    });

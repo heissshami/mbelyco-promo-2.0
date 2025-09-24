@@ -1,19 +1,15 @@
-// Download API Integration - Overrides download functionality to use serverless functions
-// This script should be loaded after app.js to override existing functionality
+// Download API Integration - Defines download functionality to use serverless functions
+// This script should be loaded before app.js to provide direct implementation
 
 (function() {
     'use strict';
 
-    // Store original functions for potential fallback
-    const originalOpenDownloadModal = window.openDownloadModal;
-    const originalHandleDownloadConfirm = window.handleDownloadConfirm;
-    const originalDownloadCSV = window.downloadCSV;
-    const originalDownloadPDF = window.downloadPDF;
-    const originalDownloadCodesWithProgress = window.downloadCodesWithProgress;
+    // We'll define these functions directly instead of overriding them
+    // app.js will use these implementations
 
-    // Override openDownloadModal to use our API version
+    // Define openDownloadModal function directly
     window.openDownloadModal = function(batchId) {
-        console.log('Using API version of openDownloadModal');
+        console.log('API version of openDownloadModal');
         
         // Populate batch dropdown
         const sel = document.getElementById('downloadBatch');
@@ -36,14 +32,14 @@
         if (window.modal && window.modal.open) {
             window.modal.open();
         } else {
-            // Fallback to original function if modal system not available
-            originalOpenDownloadModal && originalOpenDownloadModal(batchId);
+            // Use a simple alert if modal system not available
+            alert('Download modal cannot be opened. Modal system not available.');
         }
     };
 
-    // Override handleDownloadConfirm to use API
+    // Define handleDownloadConfirm function directly
     window.handleDownloadConfirm = async function() {
-        console.log('Using API version of handleDownloadConfirm');
+        console.log('API version of handleDownloadConfirm');
         
         // Validate form first
         if (!validateDownloadForm()) {
@@ -173,16 +169,11 @@
         } catch (error) {
             console.error('Download API error:', error);
             
-            // Fallback to original download methods if API fails
-            console.log('Falling back to original download methods');
-            if (format === 'csv' && originalDownloadCSV) {
-                originalDownloadCSV(batch);
-            } else if (format === 'pdf' && originalDownloadPDF) {
-                originalDownloadPDF(batch);
-            }
+            // Show error message if API fails
+            console.log('API download failed');
             
             if (window.toast) {
-                window.toast('Download completed with fallback method', 'info');
+                window.toast('Download failed. Please try again later.', 'error');
             }
         } finally {
             // Close progress modal
@@ -249,29 +240,20 @@
         }
     }
 
-    // Set up event listeners to override the original ones
+    // Set up event listeners for download functionality
     function setupAPIEventListeners() {
         console.log('Setting up API download event listeners');
 
-        // Override the download confirm button
+        // Set up the download confirm button
         const downloadConfirmBtn = document.getElementById('downloadConfirm');
         if (downloadConfirmBtn) {
-            downloadConfirmBtn.removeEventListener('click', originalHandleDownloadConfirm);
             downloadConfirmBtn.addEventListener('click', window.handleDownloadConfirm);
         }
 
-        // Override card download triggers
+        // Set up card download triggers
         const cardDownload = document.getElementById('cardDownload');
         if (cardDownload) {
-            cardDownload.removeEventListener('click', () => originalOpenDownloadModal());
             cardDownload.addEventListener('click', () => window.openDownloadModal());
-            
-            cardDownload.removeEventListener('keydown', (e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    originalOpenDownloadModal();
-                }
-            });
             
             cardDownload.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
@@ -281,16 +263,14 @@
             });
         }
 
-        // Override other download buttons
+        // Set up other download buttons
         const btnDownloadCodes = document.getElementById('btnDownloadCodes');
         if (btnDownloadCodes) {
-            btnDownloadCodes.removeEventListener('click', () => originalOpenDownloadModal());
             btnDownloadCodes.addEventListener('click', () => window.openDownloadModal());
         }
 
         const btnCodesDownload = document.getElementById('btnCodesDownload');
         if (btnCodesDownload) {
-            btnCodesDownload.removeEventListener('click', () => originalOpenDownloadModal());
             btnCodesDownload.addEventListener('click', () => window.openDownloadModal());
         }
 
@@ -304,6 +284,6 @@
         setupAPIEventListeners();
     }
 
-    console.log('Download API integration loaded successfully');
+    console.log('Download API integration initialized successfully');
 
 })();

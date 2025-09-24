@@ -1,13 +1,11 @@
 // Import API Integration Script
-// Overrides import functionality to use serverless API endpoints
+// Defines import functionality to use serverless API endpoints
 
 (function() {
     'use strict';
 
-    // Store original functions for fallback
-    const originalHandleImportFile = window.handleImportFile;
-    const originalImportCodesWithProgress = window.importCodesWithProgress;
-    const originalImportSettings = window.importSettings;
+    // Define functions directly instead of overriding them
+    // app.js will use these implementations
 
     // Helper function to show toast messages
     function showToast(message, type = 'info') {
@@ -23,7 +21,7 @@
         return document.getElementById(id);
     }
 
-    // Override handleImportFile to use API
+    // Define handleImportFile function to use API
     window.handleImportFile = async function(file) {
         try {
             showToast('Starting import process...', 'info');
@@ -90,15 +88,12 @@
             console.error('Import API error:', error);
             showToast('Failed to connect to import service', 'error');
             
-            // Fallback to original function if API fails
-            if (originalHandleImportFile) {
-                showToast('Falling back to local import...', 'warning');
-                return originalHandleImportFile.call(this, file);
-            }
+            // Show error message if API fails
+            showToast('Import failed. Please try again later.', 'error');
         }
     };
 
-    // Override importCodesWithProgress to use API with progress simulation
+    // Define importCodesWithProgress function to use API with progress simulation
     window.importCodesWithProgress = async function(file, options = {}) {
         try {
             const progressModal = el('importProgressModal');
@@ -210,15 +205,12 @@
 
             showToast(error.message || 'Import failed', 'error');
             
-            // Fallback to original function
-            if (originalImportCodesWithProgress) {
-                showToast('Falling back to local import...', 'warning');
-                return originalImportCodesWithProgress.call(this, file, options);
-            }
+            // Show error message
+            showToast('Import failed. Please try again later.', 'error');
         }
     };
 
-    // Override importSettings to use API
+    // Define importSettings function to use API
     window.importSettings = async function(event) {
         try {
             const file = event.target.files[0];
@@ -261,26 +253,22 @@
             console.error('Settings import API error:', error);
             showToast('Failed to connect to settings service', 'error');
             
-            // Fallback to original function
-            if (originalImportSettings) {
-                return originalImportSettings.call(this, event);
-            }
+            // Show error message
+            showToast('Settings import failed. Please try again later.', 'error');
         }
     };
 
-    // Set up event listeners to override existing ones
+    // Set up event listeners for import functionality
     document.addEventListener('DOMContentLoaded', function() {
-        // Override import file input change event
+        // Set up import file input change event
         const importFileInput = el('importFile');
         if (importFileInput) {
-            importFileInput.removeEventListener('change', originalHandleImportFile);
             importFileInput.addEventListener('change', window.handleImportFile);
         }
 
-        // Override import settings input change event
+        // Set up import settings input change event
         const importSettingsInput = el('importSettings');
         if (importSettingsInput) {
-            importSettingsInput.removeEventListener('change', originalImportSettings);
             importSettingsInput.addEventListener('change', window.importSettings);
         }
 
@@ -338,9 +326,9 @@
             });
         }
 
-        showToast('Import API integration loaded successfully', 'success');
+        showToast('Import API integration initialized successfully', 'success');
     });
 
-    console.log('Import API integration script loaded');
+    console.log('Import API integration script initialized');
 
 })();
