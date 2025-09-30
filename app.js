@@ -10,6 +10,69 @@
         isAuthenticated: false
     };
 
+    // Authentication Management
+    function initializeAuth() {
+        try {
+            const loggedInUser = JSON.parse(sessionStorage.getItem('loggedInUser') || 'null');
+            if (loggedInUser) {
+                state.user = loggedInUser;
+                state.isAuthenticated = true;
+                updateUserInterface();
+                console.log('Authentication initialized:', loggedInUser.email);
+            } else {
+                state.user = null;
+                state.isAuthenticated = false;
+                console.log('No active session found');
+            }
+        } catch (error) {
+            console.error('Error initializing authentication:', error);
+            clearAuthenticationState();
+        }
+    }
+
+    function updateUserInterface() {
+        if (state.isAuthenticated && state.user) {
+            // Update user menu visibility and user name
+            const userMenu = el('userMenu');
+            const userName = el('userName');
+            if (userMenu) userMenu.style.display = 'block';
+            if (userName) userName.textContent = state.user.name || state.user.email || 'User';
+        } else {
+            // Hide user menu if not authenticated
+            const userMenu = el('userMenu');
+            if (userMenu) userMenu.style.display = 'none';
+        }
+    }
+
+    function clearAuthenticationState() {
+        state.user = null;
+        state.isAuthenticated = false;
+        sessionStorage.removeItem('loggedInUser');
+        localStorage.removeItem('mbelyco-session');
+        sessionStorage.removeItem('mbelyco-session');
+        updateUserInterface();
+    }
+
+    function logout() {
+        clearAuthenticationState();
+        toast('Logged out successfully', 'info');
+        // Redirect to login page after a short delay
+        setTimeout(() => {
+            window.location.href = 'login.html';
+        }, 1000);
+    }
+
+    function requireAuth() {
+        if (!state.isAuthenticated) {
+            toast('Please log in to access this feature', 'error');
+            setTimeout(() => {
+                window.location.href = 'login.html';
+            }, 1500);
+            return false;
+        }
+        return true;
+    }
+
     const el = (id)=>document.getElementById(id);
     const qs = (sel, root=document)=>root.querySelector(sel);
     const qsa = (sel, root=document)=>Array.from(root.querySelectorAll(sel));
@@ -24,7 +87,7 @@
         return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
     }
 
-    // Seed data according to PRD patterns
+    //
     function randomCodePart(len){
         const CHARS = 'ACEFGHJKLMNPRSTUWXYZ0123456789';
         let out = '';
@@ -93,6 +156,7 @@
         filtered.forEach(b=>{
             const tr = document.createElement('tr');
             const expires = b.expiration_date ? fmtDate(b.expiration_date) : 'N/A';
+
             // Use backend redeemed_count when available, fallback to local calc
             const redeemed = (typeof b.redeemed_count === 'number')
                 ? b.redeemed_count
@@ -136,6 +200,7 @@
         });
         if(window.lucide) window.lucide.createIcons();
         fixSelectIcons();
+        
         // update counts and items
         updateBatchCounts();
         const btItems = el('btItemsCount'); if(btItems) btItems.textContent = String(filtered.length);
@@ -594,6 +659,7 @@
     }
 
     function openGenerateForm(){
+        if (!requireAuth()) return;
         openModal('generateFormModal');
     }
     function openModal(id){
@@ -781,6 +847,8 @@
     }
 
     function openDownloadModal(batchId){
+        if (!requireAuth()) return;
+        
         const sel = el('downloadBatch');
         sel.innerHTML = '';
         state.batches.forEach(b=>{
@@ -904,6 +972,8 @@
 
     // Import Codes with Progress
     function importCodesWithProgress() {
+        if (!requireAuth()) return;
+        
         const modal = document.getElementById('importModal');
         const progressContainer = modal.querySelector('.progress-container');
         const importBtn = modal.querySelector('#importBtn');
@@ -1266,25 +1336,19 @@
         window.location.href = 'login.html';
     }
 
-    function logout() {
-        state.user = null;
-        state.isAuthenticated = false;
-        localStorage.removeItem('mbelyco-session');
-        sessionStorage.removeItem('mbelyco-session');
-        sessionStorage.removeItem('loggedInUser'); // legacy cleanup
-        redirectToLogin();
+    function updateAuthUI() {
+        // This function is now handled by updateUserInterface() in the unified auth system
+        updateUserInterface();
     }
 
-    function updateAuthUI() {
-        const userMenu = el('userMenu');
-        const userName = el('userName');
+    // Legacy function for compatibility
+    function redirectToLogin() {
+        window.location.href = 'login.html';
+    }
 
-        if (state.isAuthenticated) {
-            if (userMenu) userMenu.style.display = 'flex';
-            if (userName && state.user) userName.textContent = state.user.name;
-        } else {
-            if (userMenu) userMenu.style.display = 'none';
-        }
+    // Check if user is authenticated (compatibility function)
+    function isAuthenticated() {
+        return state.isAuthenticated;
     }
 
     function toggleUserMenu(){
@@ -3031,17 +3095,8 @@
         const path = window.location.pathname;
         const page = path.substring(path.lastIndexOf('/') + 1);
 
-        // Check auth status first
-        try {
-            const user = JSON.parse(sessionStorage.getItem('loggedInUser'));
-            if (user) {
-                state.user = user;
-                state.isAuthenticated = true;
-            }
-        } catch (e) {
-            // It's normal for this to fail if the user is not logged in.
-            state.isAuthenticated = false;
-        }
+        // Initialize authentication using unified system
+        initializeAuth();
 
         if (!state.isAuthenticated) {
             // If not on login page, and not on verify page, redirect to login
@@ -3734,6 +3789,8 @@
     }
 
     async function handleImportFile(file){
+        if (!requireAuth()) return;
+        
         try{
             const text = await file.text();
             const lines = text.split(/\r?\n/).filter(Boolean);
